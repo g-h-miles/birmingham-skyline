@@ -25,16 +25,15 @@
         transitionIn: { kind: 'cut', dur: 0 },
         brief:
           'A transparent footer plate on the page background. A thin ground rule sweeps left to ' +
-          'right on beats 0-2, three faint ghost slabs peek up behind, then a dense band of ' +
-          'nineteen shoulder-to-shoulder landmark buildings inks itself in one travelling pen each, ' +
-          'staggered L to R: gridded corner block, cupola tower, striped slab, Gothic spire with a ' +
-          'flag, pediment tower with urns, turret cluster, colonnaded classical front, bandstand ' +
-          'dome, tall Gothic tower with rose window, banded block with balustrade, stepped steeple ' +
-          'with clock, lattice slab with mast and orb, domed civic building, gabled terrace, belfry ' +
-          'cone tower, the statue column with raised-arm figure as the tallest peak, the Colmore ' +
-          'block with two corner orbs, crown slab, and a closing arcade with a pyramidal tower. ' +
-          'Each pass draws outline, then window lattice, then crown. A light-tracked BIRMINGHAM ' +
-          'wordmark wipes in below the ground rule on beats 18-20.',
+          'right on beats 0-2. The back plane rises first: a lattice mast, the one dense-grid slab, ' +
+          'the hero orb tower with pediment and corner balls, a Gothic octagonal spire, a pinstripe ' +
+          'slab, a plain monolith. Then the front plane inks in left to right, each building ' +
+          'knocking a clean sticker margin out of the backs: a broad classical office with arched ' +
+          'clerestory and sparse panes, a stepped cupola tower with dome and needle, a gabled ' +
+          'tower, the twin-domed station centrepiece with a hatched staircase, a gabled Gothic ' +
+          'church with rose window and corner spirelets, a broad slab with horizontal floor bands, ' +
+          'an Art Deco tower crowned by a standing statue with raised arm, and a low closing ' +
+          'arcade. A light-tracked BIRMINGHAM wordmark wipes in below the ground rule.',
       },
     ],
     cues: [],

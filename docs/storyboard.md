@@ -11,9 +11,9 @@ on the paper plate.
 | Beat | t | Event |
 |---|---|---|
 | 0–2 | 0–1.15 | thin ground rule sweeps left→right |
-| 2–5 | 1.15–2.9 | three faint ghost slabs peek up behind the band |
-| 2.3–20 | 1.4–11.0 | nineteen buildings shoulder-to-shoulder, one travelling pen each ~1.35 s, staggered 0.46 s L→R: gridded corner block, cupola tower, striped slab, Gothic spire with flag, pediment tower with urns, turret cluster, colonnaded classical front, slim bandstand dome, tall Gothic tower with rose window, banded block with balustrade, stepped steeple with clock, lattice slab with mast and orb, domed civic building, gabled terrace, belfry cone tower, statue column (the tallest peak, raised-arm figure), Colmore block with corner orbs, crown slab, closing arcade with pyramidal tower. Each pass = outline → lattice → crown |
-| 18–20.3 | 10.9–12.2 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
-| 21–22 | 12.6–13.2 | hold |
+| 2–11 | 1.2–6.4 | BACK plane rises: lattice mast, dense-grid slab, orb tower, Gothic spire, pinstripe slab, monolith |
+| 10–20 | 6.2–11.9 | FRONT plane, L→R, each knocking a sticker margin out of the backs: classical office with arched clerestory, cupola tower, gabled tower, the twin-domed station with hatched staircase, gabled church with rose window, banded slab, statue tower, closing arcade. Each pass = outline → panes → crown |
+| 19–21.5 | 11.6–12.9 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
+| 22 | 13.2 | hold |
 
 Sound: none (page deliverable).

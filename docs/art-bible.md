@@ -40,26 +40,32 @@ Line-art discipline from the references: ink only, no fills, no colour accents o
 
 ## 3. Subject reference (drawable elements)
 
-The band, left→right, all standing on the ground rule: gridded corner block with roof hut; cupola
-tower on a drum; striped slab with stepped cap; Gothic spire flying a small flag; pediment tower
-with corner urns; turret cluster (twin small domes flanking a taller central dome on a drum);
-colonnaded classical front with pediment, clock dot and steps; slim bandstand dome; tall Gothic
-tower with rose window, twin lights and spire; banded block with roof balustrade; stepped steeple
-with clock face and belfry lights; lattice slab with mast and orb; domed civic building over low
-banded wings; gabled terrace with chimneys, dropping to street height; belfry tower with cone roof;
-the statue column — plinth, fluted shaft, capital, stick figure with raised arm, the tallest peak
-(reference 2, right edge); the Colmore block — pediment with two corner orbs (reference 1, centre);
-crown slab with combed stepped top; closing arcade with a pyramidal corner tower.
+Two depth planes. BACK plane (drawn first, thinner/simpler): BT-style lattice mast (x≈300); the
+ONE dense-grid slab (652-788); the hero orb tower — pediment + two corner orbs + banded window
+grid (940-1120); the Gothic octagonal spire with corner pinnacles (1224-1282); the pinstripe slab
+(1330-1448); the plain monolith right edge (1810-1872).
 
+FRONT plane (drawn later, each KNOCKS its silhouette out of the backs — sticker overlaps):
+broad classical office with roof blocks, arched clerestory row, sparse panes, tall arched door
+(52-350); stepped Art Deco cupola tower with dome, ball, needle (356-496); gabled tower with arched
+dome (500-608); THE STATION centrepiece — twin domed drum towers with arcades, pedimented central
+facade with lunette, three arched entrances, wide hatched staircase (608-904); gabled Gothic church
+— rose window, corner spirelets, pointed door, side aisle (928-1144); broad slab with horizontal
+floor bands + tall three-door base (1158-1372); Art Deco tower with balustrade frieze topped by a
+standing statue with raised arm (1462-1618); low closing arcade (1628-1782).
+
+- **Windows** are sparse individual panes (small rects, ~11×16 px, inkSoft 1.2) on mostly blank
+  walls — NOT lattices covering every facade. Only ONE dense grid and ONE pinstripe building.
+- **Tone from hatching** — the station staircase is the only shaded area.
 - **Wordmark** — "BIRMINGHAM" caps, Georgia/serif regular ~60 px, letter-spacing ~30 px, ink at
-  0.85 alpha. Revealed by a left→right wipe, not typed letter-by-letter.
+  0.85 alpha, wipe-in.
 
 ### Mistakes to avoid
 
-- Filled buildings → house rule: tone from lattice only.
-- Rigid geometry → every line goes through `inkPath` wobble.
-- Gaps between buildings → the band must read as one contour; neighbours overlap slightly.
-- Trees, cars, clouds, doodles → reference-2 look is a clean band and a clean sky.
-- All buildings same height → heights must swing; the statue column tops them all.
+- Repeating a texture across buildings → each mass gets ONE signature; neighbours differ.
+- Buildings merely standing next to each other → fronts must knock out backs where they overlap.
+- Equal widths / even rhythm → widths swing 80 px to 300 px.
+- Filled shapes → house rule: tone from hatch only (the staircase).
+- Rigid geometry → outlines go through `inkPath` wobble; panes stay crisp.
 - Caption competing with skyline → it sits alone below the ground rule.
-- Windows before the outline exists → the pen draws each outline first, lattice second, crown last.
+- Windows before the outline exists → pen draws outline first, panes second, crown last.

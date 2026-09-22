@@ -3,10 +3,12 @@
 ## Goal
 
 Birmingham's skyline hand-inks itself as a cartoon footer: the page is a blank sheet with a
-Start button; pressing it runs one ~13 s shot in which a thin ground line sweeps across the bottom
-of the screen and a dense band of nineteen overlapping landmark buildings draws itself in by a
-travelling pen, closing under a light-tracked serif **BIRMINGHAM**, then holds. The footer plate is
-transparent so the ink blends onto whatever background the page shows.
+Start button; pressing it runs one ~13 s shot in which a thin ground rule sweeps across the bottom
+of the screen, a BACK plane of silhouettes rises (mast, grid slab, orb tower, spire, pinstripe,
+monolith), and a FRONT plane of detailed landmarks inks in left to right, each one knocking clean
+sticker margins out of the backs — the twin-domed station with its hatched staircase at the centre —
+closing under a light-tracked serif **BIRMINGHAM**, then holds. The footer plate is transparent so
+the ink blends onto whatever background the page shows.
 
 Subject sentence (brief of 0): *"Watch Birmingham's skyline get drawn, line by inked line, along the
 footer of a blank page."*
