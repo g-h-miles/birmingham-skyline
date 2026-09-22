@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Birmingham draws itself</title>
+<style>
+  :root { --paper: #EFE3C9; --ink: #2A1C13; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    display: flex;
+    flex-direction: column;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding-bottom: 6vh;
+  }
+  #start {
+    font: 700 clamp(22px, 3.4vw, 34px) Georgia, "Times New Roman", serif;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    background: #F6EED8;
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    padding: 0.55em 1.9em;
+    cursor: pointer;
+    transform: rotate(-1.2deg);
+    box-shadow: 4px 5px 0 rgba(42, 28, 19, 0.55);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  #start:hover { transform: rotate(-1.2deg) translateY(-2px); box-shadow: 6px 8px 0 rgba(42, 28, 19, 0.5); }
+  #start:active { transform: rotate(-1.2deg) translateY(2px); box-shadow: 2px 2px 0 rgba(42, 28, 19, 0.6); }
+  #hint {
+    font-style: italic;
+    font-size: clamp(13px, 1.6vw, 16px);
+    opacity: 0.65;
+    margin: 0;
+  }
+  footer { width: 100%; }
+  #film { display: block; width: 100%; height: auto; }
+  @media (prefers-reduced-motion: reduce) {
+    #start { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <button id="start" type="button">Start</button>
+  <p id="hint">press start — Birmingham draws itself along the footer</p>
+</main>
+<footer>
+  <canvas id="film" width="1920" height="560" aria-label="Cartoon animation of the Birmingham skyline drawing itself as a footer"></canvas>
+</footer>
+<script src="src/core.js"></script>
+<script src="src/lib.js"></script>
+<script src="src/timeline.js"></script>
+<script src="src/scenes/01-skyline.js"></script>
+<script src="src/page.js"></script>
+</body>
+</html>
