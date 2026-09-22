@@ -1,9 +1,12 @@
-// 01 skyline : Birmingham draws itself as a footer — faithful to the reference.
-// A reference composition, not a repeated band: two depth planes (silhouette backs, detailed
-// fronts), ~14 landmarks with wildly different widths and ONE signature texture each, sparse
-// individual windows on mostly blank walls, front buildings knocking clean margins out of the
-// backs (sticker overlaps), a hatched station staircase as the centrepiece, and a statue crowning
-// a tower at the right. Built once at load (seeded); draw() reads only (ctx, t).
+// 01 skyline : Birmingham draws itself as a footer — direct trace of the reference.
+// Reference (Desktop screenshot 2026-09-21 8.21.43 PM) mapped at 1920x676: pale grey hairlines,
+// buildings ~90% of the band, a continuous overlapping wall of architecture. BACK plane: lattice
+// mast, dense-grid slab, the orb-and-pediment hero tower (behind the station), the canopied Gothic
+// spire, the broad floor-banded slab, the pinstripe slab, the plain monolith. FRONT plane (each
+// knocks a clean sticker margin from the backs): broad classical office with arched clerestory +
+// ground arcade, statue-crowned cupola tower, the twin-domed station with the hatched staircase
+// (the centrepiece), the gabled church with rose window, the balustrade statue tower, the low
+// closing arcade. Built once at load; draw() reads only (ctx, t).
 (function () {
   'use strict';
 
@@ -13,8 +16,8 @@
   const TAU = Math.PI * 2;
 
   const W = 1920;
-  const H = 560;
-  const GY = 432; // the ground rule
+  const H = 676;
+  const GY = 556; // the ground rule
 
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const sstep = (a, b, x) => {
@@ -25,11 +28,15 @@
   let SID = 1;
   const sd = (k) => (LIB.hash(ID, k, SID++) & 0x7fffffff) || 7;
 
+  // reference tones: pale hairline ink; panes lighter still; wordmark grey
+  const LINE = PAL.inkSoft;
+  const PANE = PAL.inkFaint;
+
   // ---------------------------------------------------------------------------
   // geometry helpers -> dense polylines
   // ---------------------------------------------------------------------------
 
-  const STEP = 9;
+  const STEP = 8;
 
   function ln(x0, y0, x1, y1) {
     const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / STEP));
@@ -58,32 +65,29 @@
     }
     return p;
   }
-  // Gothic pointed arch, open at the bottom
   function pointed(cx, topY, botY, hw) {
     return poly([[cx - hw, botY], [cx - hw, topY + hw], [cx, topY], [cx + hw, topY + hw], [cx + hw, botY]]);
   }
-  // one small window rectangle (the reference's sparse individual panes)
+  // one small pane (the reference's tiny window squares)
   function win(cx, cy, w2, h2) {
     return poly([[cx - w2, cy - h2], [cx + w2, cy - h2], [cx + w2, cy + h2], [cx - w2, cy + h2], [cx - w2, cy - h2]]);
   }
-  // sparse window field: cols x rows of individual panes, top->bottom then left->right per row
-  function winField(x0, y0, x1, y1, cols, rows, tag) {
+  // dense pane field, row by row (the reference's signature: many tiny windows, not few big ones)
+  function paneField(x0, y0, x1, y1, cols, rows, tag) {
     const r = LIB.rng(sd(tag));
     const S = [];
-    const cw = 5.5, ch = 8;
     for (let i = 0; i < rows; i++) {
       const y = y0 + ((y1 - y0) * i) / Math.max(1, rows - 1);
       for (let j = 0; j < cols; j++) {
-        if (r() < 0.06) continue; // the odd pane left out: hand-doodled charm
+        if (r() < 0.045) continue; // the odd pane left out
         const x = x0 + ((x1 - x0) * j) / Math.max(1, cols - 1);
-        S.push({ pts: win(x, y, cw, ch), w: 1.2, c: PAL.inkSoft });
+        S.push({ pts: win(x, y, 3.6, 4.6), w: 1.0, c: PANE });
       }
     }
     return S;
   }
-  // a row of small arches (arcade / clerestory)
-  function archRow(centers, y, r0) {
-    return centers.map((x) => ({ pts: arc(x, y, r0, Math.PI, TAU), w: 1.6 }));
+  function archRow(centers, y, r0, w) {
+    return centers.map((x) => ({ pts: arc(x, y, r0, Math.PI, TAU), w: w || 1.6 }));
   }
 
   // ---------------------------------------------------------------------------
@@ -102,8 +106,8 @@
         pts: s.pts,
         cum,
         len: cum[cum.length - 1],
-        w: s.w != null ? s.w : o.w || 2.2,
-        c: s.c || o.c || PAL.ink,
+        w: s.w != null ? s.w : o.w || 2.0,
+        c: s.c || o.c || LINE,
         seed: s.seed != null ? s.seed : sd(o.tag || 'p') + list.length,
       });
     }
@@ -142,15 +146,15 @@
         width: st.w,
         color: st.c,
         seed: st.seed,
-        smooth: st.w >= 2, // panes keep crisp corners; outlines wobble
-        wobble: st.w >= 2 ? 1.5 : 0.5,
-        tremble: 0.35,
-        taper: [8, f >= 1 ? 16 : 1],
+        smooth: st.w >= 1.8, // panes keep crisp corners; structural lines wobble
+        wobble: st.w >= 1.8 ? 1.3 : 0.4,
+        tremble: 0.3,
+        taper: [8, f >= 1 ? 14 : 1],
       });
     }
   }
 
-  // Sticker overlap: a front building knocks a clean margin out of everything drawn behind it.
+  // Sticker overlap: a front building knocks a clean margin out of everything behind it.
   function knock(ctx, sil) {
     ctx.save();
     if (FILM.transparent) ctx.globalCompositeOperation = 'destination-out';
@@ -164,340 +168,377 @@
   }
 
   // ---------------------------------------------------------------------------
-  // BACK plane — silhouettes and tall textures, drawn first, faintly detailed
+  // BACK plane — the tall silhouettes the front wall stands against
   // ---------------------------------------------------------------------------
 
-  // BT-style lattice mast
-  const bkMast = pass(
-    [
-      { pts: ln(292, GY, 303, 118) },
-      { pts: ln(314, GY, 304, 118) },
-      { pts: ln(303, 118, 304, 86) },
-      { pts: ln(298, 150, 309, 150), w: 1.2 },
-      ...[180, 230, 285, 340, 395].map((y) => ({ pts: ln(293 + (GY - y) * 0.006, y, 313 - (GY - y) * 0.006, y), w: 1.2 })),
-    ],
-    { w: 1.6, c: PAL.inkSoft, tag: 'mast' }
-  );
+  // lattice radio mast, slim taper with light braces and a long needle (x 395-445)
+  const bkMast = (() => {
+    const cx = 420;
+    const hw = (y) => 2.5 + ((GY - y) / (GY - 160)) * 12; // slim
+    const S = [
+      { pts: ln(cx - 14, GY, cx - 2.5, 160) },
+      { pts: ln(cx + 14, GY, cx + 2.5, 160) },
+      { pts: ln(cx, 160, cx, 84) },
+      { pts: ln(cx - 2.5, 140, cx + 2.5, 140), w: 1.0 },
+    ];
+    const ys = [200, 252, 312, 378, 446, 512];
+    for (let i = 0; i < ys.length; i++) {
+      const y = ys[i];
+      const w = hw(y);
+      S.push({ pts: ln(cx - w, y, cx + w, y), w: 0.9 });
+      const y2 = i + 1 < ys.length ? ys[i + 1] : GY;
+      const w2 = hw(y2);
+      S.push({ pts: ln(cx - w, y, cx + w2 * 0.5, y2), w: 0.8 });
+      S.push({ pts: ln(cx + w, y, cx - w2 * 0.5, y2), w: 0.8 });
+    }
+    return pass(S, { w: 1.1, c: PANE, tag: 'mast' });
+  })();
 
-  // the ONE dense-grid slab (behind, left of centre)
-  const bkDense = pass(
-    [
-      { pts: ln(652, GY, 652, 128) },
-      { pts: ln(788, GY, 788, 128) },
-      { pts: ln(652, 128, 788, 128) },
-    ],
-    { w: 2, tag: 'dense' }
-  );
-  {
-    const S = [];
-    for (let y = 146; y < GY - 16; y += 15) S.push({ pts: ln(660, y, 780, y), w: 1.0, c: PAL.inkSoft });
-    for (let x = 664; x < 782; x += 15) S.push({ pts: ln(x, 136, x, GY - 18), w: 1.0, c: PAL.inkSoft });
-    bkDense.strokes.push(...pass(S, { tag: 'dense2' }).strokes);
-    let tot = 0;
-    for (const s of bkDense.strokes) tot += s.len;
-    bkDense.total = tot;
-  }
+  // the ONE dense-grid slab (x 560-700)
+  const bkDense = (() => {
+    const S = [
+      { pts: ln(560, GY, 560, 92) },
+      { pts: ln(700, GY, 700, 92) },
+      { pts: ln(560, 92, 700, 92) },
+    ];
+    for (let y = 104; y < GY - 8; y += 11) S.push({ pts: ln(566, y, 694, y), w: 0.9, c: PANE });
+    for (let x = 570; x < 696; x += 11.5) S.push({ pts: ln(x, 96, x, GY - 10), w: 0.9, c: PANE });
+    return pass(S, { w: 1.9, tag: 'dense' });
+  })();
 
-  // hero tower behind the station: pediment + two corner orbs, banded tall windows
+  // hero orb tower behind the station (x 880-1130): pediment, two corner orbs, pane columns
   const bkOrb = (() => {
     const S = [
-      { pts: ln(940, GY, 940, 108) },
-      { pts: ln(1120, GY, 1120, 108) },
-      { pts: ln(940, 108, 1120, 108) },
-      { pts: ln(940, 108, 1030, 66) },
-      { pts: ln(1120, 108, 1030, 66) },
-      { pts: circle(953, 96, 10), w: 2 },
-      { pts: circle(1107, 96, 10), w: 2 },
+      { pts: ln(880, GY, 880, 112) },
+      { pts: ln(1130, GY, 1130, 112) },
+      { pts: ln(876, 112, 1134, 112) },
+      { pts: ln(876, 112, 1005, 44) },
+      { pts: ln(1134, 112, 1005, 44) },
+      { pts: ln(892, 100, 1118, 100), w: 1.4 },
+      { pts: circle(893, 88, 11), w: 1.8 },
+      { pts: circle(1117, 88, 11), w: 1.8 },
     ];
-    // three vertical window bands, each a run of stacked panes
-    for (const bx of [975, 1030, 1085]) S.push({ pts: ln(bx, 130, bx, GY - 14), w: 1.1, c: PAL.inkSoft });
-    for (let y = 140; y < GY - 20; y += 26) {
-      S.push({ pts: ln(955, y, 1105, y), w: 1.1, c: PAL.inkSoft });
-    }
-    return pass(S, { w: 2.2, tag: 'orb' });
+    // paired corner columns + a plain central spine with its own tall strip
+    S.push({ pts: ln(1005, 112, 1005, GY - 16), w: 1.4 }, { pts: ln(990, 124, 990, GY - 16), w: 1.1 }, { pts: ln(1020, 124, 1020, GY - 16), w: 1.1 });
+    S.push(...paneField(908, 134, 975, GY - 24, 5, 15, 'orba'));
+    S.push(...paneField(1035, 134, 1102, GY - 24, 5, 15, 'orbb'));
+    return pass(S, { w: 1.9, tag: 'orb' });
   })();
 
-  // Gothic octagonal spire behind the station's right shoulder
+  // canopied Gothic spire tower (x 1195-1275): tall broad spire with crockets and a big light
   const bkSpire = pass(
     [
-      { pts: ln(1230, GY, 1230, 216) },
-      { pts: ln(1276, GY, 1276, 216) },
-      { pts: ln(1226, 216, 1280, 216) },
-      { pts: ln(1230, 216, 1253, 96) },
-      { pts: ln(1276, 216, 1253, 96) },
-      { pts: circle(1253, 88, 3.2), w: 1.6 },
-      { pts: ln(1224, 216, 1224, 196), w: 1.4 },
-      { pts: ln(1282, 216, 1282, 196), w: 1.4 },
-      { pts: circle(1224, 192, 2.4), w: 1.4 },
-      { pts: circle(1282, 192, 2.4), w: 1.4 },
-      { pts: pointed(1253, 250, 330, 9), w: 1.6 },
-      { pts: ln(1230, 360, 1276, 360), w: 1.2, c: PAL.inkSoft },
+      { pts: ln(1200, GY, 1200, 230) },
+      { pts: ln(1270, GY, 1270, 230) },
+      { pts: ln(1195, 230, 1275, 230) },
+      { pts: ln(1198, 230, 1235, 70) },
+      { pts: ln(1272, 230, 1235, 70) },
+      { pts: circle(1235, 62, 3.4), w: 1.5 },
+      // crocket ticks along both spire edges
+      { pts: ln(1220, 170, 1212, 166), w: 1.1 },
+      { pts: ln(1228, 124, 1221, 121), w: 1.1 },
+      { pts: ln(1250, 170, 1258, 166), w: 1.1 },
+      { pts: ln(1242, 124, 1249, 121), w: 1.1 },
+      // corner needle pinnacles on drum corners
+      { pts: ln(1195, 230, 1195, 204), w: 1.4 },
+      { pts: ln(1275, 230, 1275, 204), w: 1.4 },
+      { pts: circle(1195, 200, 2.4), w: 1.2 },
+      { pts: circle(1275, 200, 2.4), w: 1.2 },
+      // the big canopied light: arch + inner arch + eye
+      { pts: pointed(1235, 268, 384, 17), w: 1.5 },
+      { pts: pointed(1235, 286, 384, 10), w: 1.1 },
+      { pts: circle(1235, 306, 2.6), w: 1.1 },
+      { pts: ln(1200, 440, 1270, 440), w: 1.1, c: PANE },
     ],
-    { w: 2, tag: 'spire' }
+    { w: 1.7, tag: 'spire' }
   );
 
-  // the pinstripe slab (right, behind)
-  const bkPin = (() => {
+  // broad slab with horizontal floor bands + setback (x 1300-1565)
+  const bkBand = (() => {
     const S = [
-      { pts: ln(1330, GY, 1330, 150) },
-      { pts: ln(1448, GY, 1448, 150) },
-      { pts: ln(1330, 150, 1448, 150) },
+      { pts: ln(1300, GY, 1300, 168) },
+      { pts: ln(1565, GY, 1565, 168) },
+      { pts: ln(1300, 168, 1565, 168) },
+      { pts: poly([[1350, 168], [1350, 138], [1520, 138], [1520, 168]]), w: 1.6 },
     ];
-    for (let y = 160; y < GY - 10; y += 11) S.push({ pts: ln(1336, y, 1442, y), w: 1.0, c: PAL.inkSoft });
-    return pass(S, { w: 2, tag: 'pin' });
+    for (let y = 184; y < 448; y += 10.5) S.push({ pts: ln(1308, y, 1557, y), w: 0.9, c: PANE });
+    return pass(S, { w: 1.9, tag: 'band' });
   })();
 
-  // plain monolith at the right edge
+  // the pinstripe slab (x 1596-1704)
+  const bkPin = (() => {
+    const S = [
+      { pts: ln(1596, GY, 1596, 132) },
+      { pts: ln(1704, GY, 1704, 132) },
+      { pts: ln(1596, 132, 1704, 132) },
+    ];
+    for (let y = 142; y < GY - 8; y += 7.5) S.push({ pts: ln(1602, y, 1698, y), w: 0.9, c: PANE });
+    return pass(S, { w: 1.9, tag: 'pin' });
+  })();
+
+  // plain monolith right edge (x 1770-1838)
   const bkMono = pass(
     [
-      { pts: ln(1810, GY, 1810, 208) },
-      { pts: ln(1872, GY, 1872, 208) },
-      { pts: ln(1810, 208, 1872, 208) },
-      { pts: ln(1841, 214, 1841, GY - 10), w: 1.1, c: PAL.inkSoft },
+      { pts: ln(1770, GY, 1770, 288) },
+      { pts: ln(1838, GY, 1838, 288) },
+      { pts: ln(1770, 288, 1838, 288) },
+      { pts: ln(1804, 296, 1804, GY - 10), w: 1.0, c: PANE },
     ],
-    { w: 2, tag: 'mono' }
+    { w: 1.8, tag: 'mono' }
   );
 
   // ---------------------------------------------------------------------------
-  // FRONT plane — detailed landmarks that knock out the backs
+  // FRONT plane — the wall of architecture, each knocking the backs clean
   // ---------------------------------------------------------------------------
 
-  // F1 broad classical office, arched clerestory, sparse panes, corner roof blocks
+  // f1 broad classical office (x 50-395): roof blocks, arched clerestory, dense panes, arcade
   const f1 = pass(
     [
-      { pts: ln(64, GY, 64, 206) },
-      { pts: ln(338, GY, 338, 206) },
-      { pts: ln(60, 206, 342, 206) },
-      { pts: poly([[76, 206], [76, 190], [118, 190], [118, 206]]), w: 1.8 },
-      { pts: poly([[286, 206], [286, 190], [326, 190], [326, 206]]), w: 1.8 },
-      { pts: ln(64, 236, 338, 236), w: 1.4 },
-      ...archRow([92, 128, 164, 200, 236, 272, 308], 236, 12),
-      ...winField(96, 280, 306, 404, 6, 5, 'f1'),
-      { pts: pointed(201, 372, GY, 17), w: 2 },
-      { pts: ln(184, 392, 218, 392), w: 1.2, c: PAL.inkSoft },
+      { pts: ln(50, GY, 50, 288) },
+      { pts: ln(395, GY, 395, 288) },
+      { pts: ln(46, 288, 399, 288) },
+      { pts: poly([[62, 288], [62, 270], [110, 270], [110, 288]]), w: 1.6 },
+      { pts: poly([[336, 288], [336, 270], [384, 270], [384, 288]]), w: 1.6 },
+      { pts: ln(46, 312, 399, 312), w: 1.4 },
+      ...archRow([78, 118, 158, 198, 238, 278, 318, 358], 312, 13, 1.4),
+      ...paneField(80, 348, 365, 458, 11, 8, 'f1p'),
+      { pts: ln(50, 480, 395, 480), w: 1.4 },
+      ...archRow([82, 124, 166, 248, 290, 332], GY, 15, 1.4),
+      { pts: poly([[202, GY], [202, 492], [236, 492], [236, GY]]), w: 1.6 },
+      { pts: ln(202, 506, 236, 506), w: 1.1 },
     ],
     { tag: 'f1' }
   );
-  const f1sil = [[52, GY + 6], [52, 200], [70, 184], [124, 184], [124, 200], [280, 200], [280, 184], [332, 184], [332, 200], [350, 200], [350, GY + 6]];
+  const f1sil = [[40, GY + 8], [40, 282], [56, 264], [116, 264], [116, 282], [330, 282], [330, 264], [390, 264], [390, 282], [405, 282], [405, GY + 8]];
 
-  // F2 stepped Art Deco tower with cupola dome, ball and needle
+  // f2 cupola tower with a statue on the dome (x 428-566)
   const f2 = pass(
     [
-      { pts: ln(368, GY, 368, 252) },
-      { pts: ln(484, GY, 484, 252) },
-      { pts: ln(362, 252, 490, 252) },
-      { pts: ln(386, 252, 386, 208) },
-      { pts: ln(466, 252, 466, 208) },
-      { pts: ln(382, 208, 470, 208) },
-      { pts: ln(398, 208, 398, 180) },
-      { pts: ln(454, 208, 454, 180) },
-      { pts: ln(394, 180, 458, 180) },
-      { pts: arc(426, 180, 32, Math.PI, TAU) },
-      { pts: circle(426, 141, 4), w: 1.8 },
-      { pts: ln(426, 137, 426, 116), w: 1.4 },
-      { pts: circle(426, 112, 2.6), w: 1.4 },
-      { pts: ln(406, 180, 406, 162), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(426, 178, 426, 162), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(446, 180, 446, 162), w: 1.1, c: PAL.inkSoft },
-      ...winField(392, 282, 460, 400, 3, 5, 'f2'),
-      { pts: pointed(426, 396, GY, 14), w: 1.8 },
+      { pts: ln(428, GY, 428, 336) },
+      { pts: ln(566, GY, 566, 336) },
+      { pts: ln(424, 336, 570, 336) },
+      { pts: ln(446, 336, 446, 292) },
+      { pts: ln(548, 336, 548, 292) },
+      { pts: ln(442, 292, 552, 292) },
+      { pts: ln(458, 292, 458, 262) },
+      { pts: ln(536, 292, 536, 262) },
+      { pts: arc(497, 262, 40, Math.PI, TAU) },
+      { pts: ln(497, 222, 497, 208) },
+      // small statue crowning the dome (the reference's figure)
+      { pts: circle(497, 200, 4.5), w: 1.5 },
+      { pts: ln(497, 205, 497, 216), w: 1.5 },
+      { pts: ln(497, 207, 490, 197), w: 1.3 },
+      // drum panels
+      { pts: ln(470, 262, 470, 240), w: 1.0, c: PANE },
+      { pts: ln(497, 262, 497, 238), w: 1.0, c: PANE },
+      { pts: ln(524, 262, 524, 240), w: 1.0, c: PANE },
+      ...paneField(448, 366, 546, 480, 6, 7, 'f2p'),
+      { pts: poly([[478, GY], [478, 506], [516, 506], [516, GY]]), w: 1.6 },
+      { pts: ln(478, 520, 516, 520), w: 1.1 },
     ],
     { tag: 'f2' }
   );
-  const f2sil = [[356, GY + 6], [356, 246], [380, 246], [380, 202], [392, 202], [392, 182], [426, 146], [460, 182], [460, 202], [472, 202], [472, 246], [496, 246], [496, GY + 6]];
+  const f2sil = [[418, GY + 8], [418, 330], [438, 330], [438, 286], [452, 286], [452, 262], [497, 218], [542, 262], [542, 286], [556, 286], [556, 330], [576, 330], [576, GY + 8]];
 
-  // F7 gabled tower with arched dormer (between F2 and the station)
-  const f7 = pass(
-    [
-      { pts: ln(512, GY, 512, 258) },
-      { pts: ln(596, GY, 596, 258) },
-      { pts: ln(506, 258, 554, 196) },
-      { pts: ln(602, 258, 554, 196) },
-      { pts: arc(554, 252, 15, Math.PI, TAU), w: 1.6 },
-      { pts: ln(512, 268, 596, 268), w: 1.2, c: PAL.inkSoft },
-      ...winField(532, 296, 576, 402, 2, 5, 'f7'),
-      { pts: arc(554, GY, 14, Math.PI, TAU), w: 1.8 },
-    ],
-    { tag: 'f7' }
-  );
-  const f7sil = [[500, GY + 6], [500, 262], [554, 188], [608, 262], [608, GY + 6]];
-
-  // F3 the station centrepiece: twin dome towers, pedimented facade, hatched staircase
+  // f3 THE STATION centrepiece (x 690-1060): twin dome towers, pedimented facade, staircase
   const f3 = pass(
     [
-      // left dome tower
-      { pts: ln(620, GY, 620, 292) },
-      { pts: ln(694, 330, 694, 292) },
-      { pts: ln(614, 292, 700, 292) },
-      { pts: arc(657, 292, 40, Math.PI, TAU) },
-      { pts: circle(657, 246, 3.4), w: 1.6 },
-      { pts: arc(641, 320, 9, Math.PI, TAU), w: 1.4 },
-      { pts: arc(657, 320, 9, Math.PI, TAU), w: 1.4 },
-      { pts: arc(673, 320, 9, Math.PI, TAU), w: 1.4 },
+      // left dome tower: sides, drum, dome, finial; two arcade tiers
+      { pts: ln(690, GY, 690, 372) },
+      { pts: ln(786, GY, 786, 420) },
+      { pts: ln(684, 372, 792, 372) },
+      { pts: arc(738, 372, 50, Math.PI, TAU) },
+      { pts: ln(738, 322, 738, 310), w: 1.3 },
+      { pts: circle(738, 305, 3.2), w: 1.3 },
+      ...archRow([716, 738, 760], 402, 10, 1.3),
+      { pts: ln(690, 452, 786, 452), w: 1.1, c: PANE },
+      ...archRow([716, 738, 760], 476, 10, 1.3),
+      { pts: ln(690, 512, 786, 512), w: 1.1, c: PANE },
       // right dome tower (mirrored)
-      { pts: ln(886, GY, 886, 292) },
-      { pts: ln(800, 330, 800, 292) },
-      { pts: ln(812, 292, 898, 292) },
-      { pts: arc(855, 292, 40, Math.PI, TAU) },
-      { pts: circle(855, 246, 3.4), w: 1.6 },
-      { pts: arc(839, 320, 9, Math.PI, TAU), w: 1.4 },
-      { pts: arc(855, 320, 9, Math.PI, TAU), w: 1.4 },
-      { pts: arc(871, 320, 9, Math.PI, TAU), w: 1.4 },
-      // central facade + pediment + lunette
-      { pts: ln(700, 330, 812, 330) },
-      { pts: ln(696, 330, 756, 296) },
-      { pts: ln(816, 330, 756, 296) },
-      { pts: arc(756, 330, 17, Math.PI, TAU), w: 1.6 },
-      { pts: ln(748, 322, 744, 314), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(756, 313, 756, 322), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(764, 314, 768, 322), w: 1.1, c: PAL.inkSoft },
-      // three arched entrances on the terrace line
-      { pts: arc(716, 396, 13, Math.PI, TAU), w: 1.8 },
-      { pts: arc(756, 396, 15, Math.PI, TAU), w: 1.8 },
-      { pts: arc(796, 396, 13, Math.PI, TAU), w: 1.8 },
-      { pts: ln(716, 396, 716, 384), w: 1.2 },
-      { pts: ln(796, 396, 796, 384), w: 1.2 },
-      // staircase: wide trapezoid with treads
-      { pts: poly([[700, 396], [812, 396], [862, GY], [650, GY]]) },
-      { pts: ln(692, 404, 820, 404), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(684, 412, 828, 412), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(676, 420, 836, 420), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(668, 428, 844, 428), w: 1.1, c: PAL.inkSoft },
-    ].filter((s) => s.pts && (!s.pts.length || s.pts.length > 1) && s.w !== 0),
+      { pts: ln(1060, GY, 1060, 372) },
+      { pts: ln(964, GY, 964, 420) },
+      { pts: ln(958, 372, 1066, 372) },
+      { pts: arc(1012, 372, 50, Math.PI, TAU) },
+      { pts: ln(1012, 322, 1012, 310), w: 1.3 },
+      { pts: circle(1012, 305, 3.2), w: 1.3 },
+      ...archRow([990, 1012, 1034], 402, 10, 1.3),
+      { pts: ln(964, 452, 1060, 452), w: 1.1, c: PANE },
+      ...archRow([990, 1012, 1034], 476, 10, 1.3),
+      { pts: ln(964, 512, 1060, 512), w: 1.1, c: PANE },
+      // central facade: cornice, pediment, great lunette
+      { pts: ln(786, 420, 786, 432) },
+      { pts: ln(964, 420, 964, 432) },
+      { pts: ln(782, 432, 968, 432) },
+      { pts: ln(782, 432, 875, 378) },
+      { pts: ln(968, 432, 875, 378) },
+      { pts: circle(875, 418, 3), w: 1.3 },
+      { pts: arc(875, 452, 26, Math.PI, TAU), w: 1.5 },
+      { pts: ln(875, 452, 875, 428), w: 1.1, c: PANE },
+      { pts: ln(856, 452, 863, 436), w: 1.1, c: PANE },
+      { pts: ln(894, 452, 887, 436), w: 1.1, c: PANE },
+      { pts: ln(848, 452, 848, 434), w: 1.1, c: PANE },
+      { pts: ln(902, 452, 902, 434), w: 1.1, c: PANE },
+      { pts: ln(786, 466, 964, 466), w: 1.1, c: PANE },
+      // three tall arched entrances
+      ...archRow([820, 875, 930], GY - 56, 17, 1.6),
+      { pts: ln(803, 500, 803, GY - 56), w: 1.3 },
+      { pts: ln(837, 500, 837, GY - 56), w: 1.3 },
+      { pts: ln(858, 500, 858, GY - 56), w: 1.3 },
+      { pts: ln(892, 500, 892, GY - 56), w: 1.3 },
+      { pts: ln(913, 500, 913, GY - 56), w: 1.3 },
+      { pts: ln(947, 500, 947, GY - 56), w: 1.3 },
+      // the great staircase: one wide trapezoid with treads, hatched (reference grey)
+      { pts: poly([[790, 500], [960, 500], [1016, GY], [734, GY]]), w: 1.5 },
+      { pts: ln(784, 512, 966, 512), w: 1.0, c: PANE },
+      { pts: ln(774, 524, 976, 524), w: 1.0, c: PANE },
+      { pts: ln(764, 536, 986, 536), w: 1.0, c: PANE },
+      { pts: ln(752, 548, 998, 548), w: 1.0, c: PANE },
+    ],
     { tag: 'f3' }
   );
   const f3sil = [
-    [608, GY + 8], [608, 286], [657, 248], [706, 286], [706, 324], [714, 324], [756, 290], [798, 324], [806, 324], [806, 286], [855, 248], [904, 286], [904, 336], [872, 396], [872, GY + 8],
+    [680, GY + 8], [680, 366], [738, 300], [796, 366], [796, 424], [808, 424], [875, 360], [942, 424], [954, 424], [954, 366], [1012, 300], [1070, 366], [1070, 500], [1024, 560], [726, 560],
   ];
-  // tone from hatching: the stair face gets shade, house rules, never a fill
-  const f3shade = [[700, 396], [812, 396], [862, GY], [650, GY]];
+  const f3shade = [[790, 500], [960, 500], [1016, GY], [734, GY]];
 
-  // F4 gabled Gothic church with rose window, corner spirelets, side aisle
+  // f4 gabled Gothic church (x 1100-1330): rose window, spirelets, aisle
   const f4 = pass(
     [
-      { pts: ln(952, GY, 952, 330) },
-      { pts: ln(1084, GY, 1084, 330) },
-      { pts: ln(948, 330, 1018, 258) },
-      { pts: ln(1088, 330, 1018, 258) },
-      { pts: circle(1018, 251, 3), w: 1.6 },
-      { pts: poly([[938, 306], [948, 278], [958, 306]]), w: 1.6 },
-      { pts: circle(948, 272, 2.4), w: 1.4 },
-      { pts: ln(938, 306, 938, 330), w: 1.6 },
-      { pts: ln(958, 306, 958, 330), w: 1.6 },
-      { pts: poly([[1078, 306], [1088, 278], [1098, 306]]), w: 1.6 },
-      { pts: circle(1088, 272, 2.4), w: 1.4 },
-      { pts: ln(1078, 306, 1078, 330), w: 1.6 },
-      { pts: ln(1098, 306, 1098, 330), w: 1.6 },
-      { pts: circle(1018, 302, 13), w: 1.5 },
-      { pts: ln(1018, 289, 1018, 315), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(1005, 302, 1031, 302), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(1009, 293, 1027, 311), w: 1.1, c: PAL.inkSoft },
-      { pts: ln(1027, 293, 1009, 311), w: 1.1, c: PAL.inkSoft },
-      { pts: pointed(1018, 366, GY, 15), w: 1.8 },
-      // side aisle to the right, lower
-      { pts: ln(1084, 380, 1136, 380) },
-      { pts: ln(1136, GY, 1136, 380) },
-      { pts: pointed(1100, 400, 424, 8), w: 1.4 },
-      { pts: pointed(1122, 400, 424, 8), w: 1.4 },
+      { pts: ln(1130, GY, 1130, 410) },
+      { pts: ln(1280, GY, 1280, 410) },
+      { pts: ln(1126, 410, 1205, 330) },
+      { pts: ln(1284, 410, 1205, 330) },
+      { pts: circle(1205, 322, 3), w: 1.4 },
+      // corner spirelets
+      { pts: ln(1114, 380, 1114, 410) },
+      { pts: ln(1132, 380, 1132, 410) },
+      { pts: poly([[1112, 380], [1123, 348], [1134, 380]]), w: 1.4 },
+      { pts: circle(1123, 342, 2.6), w: 1.2 },
+      { pts: ln(1278, 380, 1278, 410) },
+      { pts: ln(1296, 380, 1296, 410) },
+      { pts: poly([[1276, 380], [1287, 348], [1298, 380]]), w: 1.4 },
+      { pts: circle(1287, 342, 2.6), w: 1.2 },
+      // rose window
+      { pts: circle(1205, 402, 17), w: 1.4 },
+      { pts: ln(1205, 385, 1205, 419), w: 1.0, c: PANE },
+      { pts: ln(1188, 402, 1222, 402), w: 1.0, c: PANE },
+      { pts: ln(1193, 390, 1217, 414), w: 1.0, c: PANE },
+      { pts: ln(1217, 390, 1193, 414), w: 1.0, c: PANE },
+      // gable-eye + door
+      { pts: circle(1205, 366, 3.4), w: 1.2 },
+      { pts: pointed(1205, 470, GY, 17), w: 1.6 },
+      // right aisle, lower, paired lancets
+      { pts: ln(1280, 458, 1330, 458) },
+      { pts: ln(1330, GY, 1330, 458) },
+      { pts: pointed(1298, 486, 528, 8), w: 1.2 },
+      { pts: pointed(1318, 486, 528, 8), w: 1.2 },
+      { pts: ln(1280, 540, 1330, 540), w: 1.0, c: PANE },
     ],
     { tag: 'f4' }
   );
-  const f4sil = [[928, GY + 6], [928, 268], [948, 268], [1018, 244], [1088, 268], [1108, 268], [1108, 306], [1144, 306], [1144, GY + 6]];
+  const f4sil = [[1104, GY + 8], [1104, 336], [1140, 336], [1205, 316], [1272, 336], [1304, 336], [1304, 452], [1340, 452], [1340, GY + 8]];
 
-  // F5 broad slab with horizontal floor bands + tall three-door base
-  const f5 = (() => {
-    const S = [
-      { pts: ln(1170, GY, 1170, 214) },
-      { pts: ln(1360, GY, 1360, 214) },
-      { pts: ln(1170, 214, 1360, 214) },
-      { pts: poly([[1216, 214], [1216, 190], [1316, 190], [1316, 214]]), w: 1.8 },
-    ];
-    for (let i = 0; i < 5; i++) {
-      const y = 232 + i * 14;
-      S.push({ pts: ln(1176, y, 1354, y), w: 1.2, c: PAL.inkSoft });
-    }
-    // three tall window bands lower down
-    for (const bx of [1210, 1265, 1320]) S.push({ pts: ln(bx - 9, 320, bx - 9, 412), w: 1.2 }, { pts: ln(bx + 9, 320, bx + 9, 412), w: 1.2 }, { pts: ln(bx - 9, 320, bx + 9, 320), w: 1.2 });
-    S.push({ pts: ln(1201, 412, 1329, 412), w: 1.2, c: PAL.inkSoft });
-    S.push({ pts: ln(1240, GY, 1240, 380), w: 1.4 }, { pts: ln(1290, GY, 1290, 380), w: 1.4 }, { pts: ln(1240, 380, 1290, 380), w: 1.4 });
-    return pass(S, { w: 2.2, tag: 'f5' });
-  })();
-  const f5sil = [[1158, GY + 6], [1158, 208], [1210, 208], [1210, 184], [1322, 184], [1322, 208], [1372, 208], [1372, GY + 6]];
-
-  // F6 Art Deco tower crowned by a standing statue with raised arm
+  // f6 statue tower (x 1390-1560): balustrade frieze, standing figure with raised arm
   const f6 = pass(
     [
-      { pts: ln(1478, GY, 1478, 216) },
-      { pts: ln(1602, GY, 1602, 216) },
-      { pts: ln(1474, 216, 1606, 216) },
-      // balustrade frieze
-      { pts: ln(1474, 208, 1606, 208), w: 1.4 },
-      ...Array.from({ length: 14 }, (_, i) => ({ pts: ln(1484 + i * 9, 208, 1484 + i * 9, 200), w: 1 })),
-      // statue plinth + figure
-      { pts: poly([[1520, 200], [1520, 186], [1562, 186], [1562, 200]]), w: 1.8 },
-      { pts: circle(1541, 160, 5.5), w: 1.8 },
-      { pts: ln(1541, 166, 1541, 178), w: 1.8 },
-      { pts: ln(1541, 168, 1528, 148), w: 1.8 },
-      { pts: ln(1541, 170, 1550, 176), w: 1.8 },
-      { pts: ln(1541, 178, 1535, 186), w: 1.6 },
-      { pts: ln(1541, 178, 1547, 186), w: 1.6 },
-      // sparse panes in two vertical runs + tall base doors
-      ...winField(1502, 248, 1578, 360, 4, 5, 'f6'),
-      { pts: ln(1518, GY, 1518, 384), w: 1.6 },
-      { pts: ln(1562, GY, 1562, 384), w: 1.6 },
-      { pts: ln(1518, 384, 1562, 384), w: 1.6 },
+      { pts: ln(1390, GY, 1390, 330) },
+      { pts: ln(1560, GY, 1560, 330) },
+      { pts: ln(1386, 330, 1564, 330) },
+      // balustrade
+      { pts: ln(1386, 320, 1564, 320), w: 1.2 },
+      ...Array.from({ length: 24 }, (_, i) => ({ pts: ln(1394 + i * 7, 320, 1394 + i * 7, 311), w: 0.9 })),
+      // plinth + robed statue with raised arm (the reference figure is solid, not a stick)
+      { pts: poly([[1444, 311], [1444, 288], [1506, 288], [1506, 311]]), w: 1.4 },
+      { pts: circle(1475, 236, 6.5), w: 1.6 },
+      // cloak/body: closed outline, shoulders to hem
+      { pts: poly([[1468, 244], [1464, 262], [1463, 288], [1487, 288], [1485, 260], [1481, 244], [1475, 242]]), w: 1.6 },
+      // raised arm to a pointing hand
+      { pts: ln(1469, 248, 1452, 222), w: 1.6 },
+      { pts: circle(1450, 219, 2.4), w: 1.3 },
+      { pts: ln(1481, 254, 1489, 266), w: 1.3 },
+      // facade: three tall banded lights with caps + a row of small squares
+      { pts: ln(1414, 352, 1414, 470), w: 1.1, c: PANE },
+      { pts: ln(1428, 352, 1428, 470), w: 1.1, c: PANE },
+      { pts: ln(1414, 352, 1428, 352), w: 1.1, c: PANE },
+      { pts: ln(1468, 352, 1468, 470), w: 1.1, c: PANE },
+      { pts: ln(1482, 352, 1482, 470), w: 1.1, c: PANE },
+      { pts: ln(1468, 352, 1482, 352), w: 1.1, c: PANE },
+      { pts: ln(1522, 352, 1522, 470), w: 1.1, c: PANE },
+      { pts: ln(1536, 352, 1536, 470), w: 1.1, c: PANE },
+      { pts: ln(1522, 352, 1536, 352), w: 1.1, c: PANE },
+      { pts: ln(1408, 336, 1542, 336), w: 1.0, c: PANE },
+      ...[1418, 1442, 1466, 1490, 1514, 1538].map((x) => ({ pts: win(x, 344, 4, 4.6), w: 1.0, c: PANE })),
+      { pts: poly([[1452, GY], [1452, 500], [1500, 500], [1500, GY]]), w: 1.6 },
+      { pts: ln(1452, 514, 1500, 514), w: 1.1 },
     ],
     { tag: 'f6' }
   );
-  const f6sil = [[1462, GY + 6], [1462, 210], [1514, 210], [1514, 180], [1541, 152], [1568, 180], [1568, 210], [1618, 210], [1618, GY + 6]];
+  const f6sil = [[1380, GY + 8], [1380, 324], [1432, 324], [1432, 240], [1450, 210], [1475, 198], [1514, 240], [1514, 324], [1570, 324], [1570, GY + 8]];
 
-  // F8 low closing arcade at the right edge
+  // f7 baroque-crowned tower in front of the dense slab (x 596-678)
+  const f7 = pass(
+    [
+      { pts: ln(596, GY, 596, 320) },
+      { pts: ln(678, GY, 678, 320) },
+      { pts: ln(592, 320, 682, 320) },
+      { pts: arc(637, 320, 41, Math.PI, TAU) },
+      { pts: circle(637, 271, 3), w: 1.3 },
+      { pts: arc(637, 320, 15, Math.PI, TAU), w: 1.2 },
+      { pts: ln(596, 336, 678, 336), w: 1.1, c: PANE },
+      ...paneField(610, 356, 664, 492, 3, 8, 'f7p'),
+      { pts: arc(637, GY, 13, Math.PI, TAU), w: 1.5 },
+    ],
+    { tag: 'f7' }
+  );
+  const f7sil = [[586, GY + 8], [586, 314], [637, 262], [688, 314], [688, GY + 8]];
+
+  // f8 the low closing wall (x 1600-1896): cornice + arcade, ends the strip low like the reference
   const f8 = pass(
     [
-      { pts: ln(1640, GY, 1640, 344) },
-      { pts: ln(1770, GY, 1770, 344) },
-      { pts: ln(1636, 344, 1774, 344) },
-      ...archRow([1666, 1705, 1744], GY, 15),
-      { pts: ln(1640, 372, 1770, 372), w: 1.2, c: PAL.inkSoft },
+      { pts: ln(1600, GY, 1600, 452) },
+      { pts: ln(1600, 452, 1896, 452) },
+      { pts: ln(1896, GY, 1896, 452) },
+      { pts: ln(1600, 468, 1896, 468), w: 1.1, c: PANE },
+      ...archRow([1640, 1702, 1764, 1826, 1884], GY, 14, 1.4),
     ],
     { tag: 'f8' }
   );
-  const f8sil = [[1628, GY + 8], [1628, 336], [1782, 336], [1782, GY + 8]];
+  const f8sil = [[1592, GY + 8], [1592, 444], [1896, 444], [1896, GY + 8]];
 
   // ---------------------------------------------------------------------------
-  // the timeline of the pen (100 bpm grid, docs/storyboard.md)
+  // the pen timeline (100 bpm grid, docs/storyboard.md)
   // ---------------------------------------------------------------------------
 
   const backs = [
-    { P: bkMast, t0: 1.2, dur: 0.9 },
-    { P: bkDense, t0: 1.7, dur: 1.5 },
-    { P: bkOrb, t0: 2.7, dur: 1.6 },
-    { P: bkSpire, t0: 3.8, dur: 1.0 },
-    { P: bkPin, t0: 4.4, dur: 1.5 },
-    { P: bkMono, t0: 5.6, dur: 0.8 },
+    { P: bkDense, t0: 1.2, dur: 1.3 },
+    { P: bkOrb, t0: 1.9, dur: 1.7 },
+    { P: bkSpire, t0: 2.8, dur: 1.1 },
+    { P: bkBand, t0: 3.4, dur: 1.5 },
+    { P: bkPin, t0: 4.2, dur: 1.1 },
+    { P: bkMono, t0: 4.9, dur: 0.8 },
+    { P: bkMast, t0: 5.3, dur: 0.9 },
   ];
   const fronts = [
-    { P: f1, sil: f1sil, t0: 6.2, dur: 1.7 },
-    { P: f2, sil: f2sil, t0: 7.0, dur: 1.5 },
-    { P: f7, sil: f7sil, t0: 7.8, dur: 1.2 },
-    { P: f3, sil: f3sil, t0: 8.2, dur: 2.0, shade: f3shade },
-    { P: f4, sil: f4sil, t0: 9.2, dur: 1.5 },
-    { P: f5, sil: f5sil, t0: 9.8, dur: 1.5 },
-    { P: f6, sil: f6sil, t0: 10.4, dur: 1.7 },
-    { P: f8, sil: f8sil, t0: 11.0, dur: 0.9 },
+    { P: f1, sil: f1sil, t0: 5.8, dur: 1.7 },
+    { P: f2, sil: f2sil, t0: 6.7, dur: 1.4 },
+    { P: f7, sil: f7sil, t0: 7.3, dur: 1.1 },
+    { P: f3, sil: f3sil, t0: 7.8, dur: 2.2, shade: f3shade },
+    { P: f4, sil: f4sil, t0: 8.9, dur: 1.5 },
+    { P: f6, sil: f6sil, t0: 9.6, dur: 1.6 },
+    { P: f8, sil: f8sil, t0: 10.5, dur: 1.0 },
   ];
 
-  const GROUND = pass([{ pts: ln(24, GY, 1896, GY), w: 2.2 }], { tag: 'grd' });
+  const GROUND = pass([{ pts: ln(24, GY, 1896, GY), w: 2.6 }], { tag: 'grd', c: PAL.ink });
 
   // ---------------------------------------------------------------------------
-  // wordmark: light serif caps, wide tracking (reference)
+  // wordmark: light serif caps, wide tracking, grey like the reference
   // ---------------------------------------------------------------------------
 
   const WORD = 'BIRMINGHAM';
   const FONT = '400 60px Georgia, "Times New Roman", serif';
 
   function drawWordmark(ctx, t) {
-    const u = seg(t, 11.6, 12.9);
+    const u = seg(t, 11.5, 12.8);
     if (u <= 0) return;
     ctx.save();
     ctx.font = FONT;
@@ -507,11 +548,11 @@
     const tw = ctx.measureText(WORD).width;
     const x0 = W / 2 - tw / 2 - 12;
     ctx.beginPath();
-    ctx.rect(x0, 444, (tw + 24) * u, H - 444);
+    ctx.rect(x0, 576, (tw + 24) * u, H - 576);
     ctx.clip();
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.9;
     ctx.fillStyle = PAL.ink;
-    ctx.fillText(WORD, W / 2, 524);
+    ctx.fillText(WORD, W / 2, 644);
     ctx.restore();
   }
 
@@ -537,22 +578,22 @@
         knock(ctx, f.sil);
         drawPass(ctx, f.P, u);
         // tone from hatching: the station staircase shades in last
-        if (f.shade && u > 0.75) {
-          const a = seg(u, 0.75, 1);
+        if (f.shade && u > 0.72) {
+          const a = seg(u, 0.72, 1);
           ctx.save();
-          ctx.globalAlpha = 0.5 * a;
+          ctx.globalAlpha = 0.55 * a;
           LIB.hatch(ctx, f.shade, {
-            angle: -0.12,
-            spacing: 5,
-            width: 1.2,
-            color: PAL.inkSoft,
-            alpha: 0.55,
+            angle: -0.08,
+            spacing: 4.5,
+            width: 1.1,
+            color: PANE,
+            alpha: 0.9,
             seed: sd('shade'),
-            length: [60, 220],
+            length: [80, 300],
             gap: [1, 2],
-            inset: 2,
+            inset: 1,
             overshoot: 0,
-            density: 0.9,
+            density: 0.95,
           });
           ctx.restore();
         }
@@ -560,7 +601,7 @@
 
       // front knocks erased ground segments: restore the rule on top
       ctx.save();
-      drawPass(ctx, GROUND, clamp01(seg(t, 0.4, 0.8) * 1));
+      drawPass(ctx, GROUND, seg(t, 0.4, 0.8));
       ctx.restore();
 
       drawWordmark(ctx, t);

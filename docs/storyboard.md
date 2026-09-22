@@ -11,9 +11,9 @@ on the paper plate.
 | Beat | t | Event |
 |---|---|---|
 | 0–2 | 0–1.15 | thin ground rule sweeps left→right |
-| 2–11 | 1.2–6.4 | BACK plane rises: lattice mast, dense-grid slab, orb tower, Gothic spire, pinstripe slab, monolith |
-| 10–20 | 6.2–11.9 | FRONT plane, L→R, each knocking a sticker margin out of the backs: classical office with arched clerestory, cupola tower, gabled tower, the twin-domed station with hatched staircase, gabled church with rose window, banded slab, statue tower, closing arcade. Each pass = outline → panes → crown |
-| 19–21.5 | 11.6–12.9 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
+| 2–10.5 | 1.2–6.2 | BACK plane rises: dense-grid slab, orb tower, Gothic spire, band slab, pinstripe, monolith, lattice mast |
+| 9.7–19 | 5.8–11.5 | FRONT plane, L→R, each knocking a sticker margin out of the backs: classical office (clerestory + arcade), cupola statue tower, baroque-crowned tower, the twin-domed station with hatched staircase, gabled church with rose window, banded statue tower, low closing arcade |
+| 19–21 | 11.5–12.8 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
 | 22 | 13.2 | hold |
 
 Sound: none (page deliverable).

@@ -6,37 +6,37 @@ transparent (no paper, no grain); only tools render on paper for review.
 
 ## 1. Frame
 
-1920 × 560 logical px. Ground rule at **y = 432**, x from 24 to 1896. Caption band y 444–556.
-Skyline occupies y 90–432; nothing readable in the outer 24 px margins.
+1920 × 676 logical px. Ground rule at **y = 556**, x from 24 to 1896. Caption band y 576–670.
+Skyline occupies y 44–556 (buildings fill ~90% of the band, like the reference); nothing readable
+in the outer 24 px margins.
 
 ### 1.1 Composition
 
-One continuous, dense band: buildings shoulder-to-shoulder with 10–30 px overlaps so the skyline
-reads as a single contour (reference 2, Desktop screenshot 2026-09-21 8.21.43 PM). Heights swing
-low→high twice across the band; the statue column (x≈1476) is the tallest peak. The sky is clean —
-trees, clouds, cars and doodles from reference 1 were tried and removed in favour of the
-reference-2 look.
+Two depth planes. The BACK plane is tall silhouettes; the FRONT plane is a continuous wall of
+detailed architecture that **knocks clean sticker margins out of the backs** (destination-out
+silhouette fills). Front masses touch or overlap; the reference has no gaps at the ground line.
 
 ## 2. Palette (subject, section 2.2 replacement)
 
-Line-art discipline from the references: ink only, no fills, no colour accents on buildings.
+Line-art discipline from the reference: pale hairline ink only, no fills, no colour accents.
 
 | Name | Hex | Use |
 |---|---|---|
-| paper | #EFE3C9 | tools-review plate only |
-| ink | #2A1C13 | ground rule, building outlines, wordmark |
-| inkSoft | #5B4331 | windows, lattice, detail strokes |
-| inkFaint | #8A735C | ghost slabs behind the band, fluting |
+| paper | #EFE3C9 | tools-review plate only (page plate is transparent) |
+| ink | #2A1C13 | ground rule, wordmark |
+| inkSoft | #5B4331 | all structural outlines (LINE) |
+| inkFaint | #8A735C | panes, grids, braces, pinstripes (PANE) |
 
 ### 2.1 Pen weights
 
 | Element | width |
 |---|---|
-| ground rule | 2.4 |
-| building outline | 2.4 (uniform — the band shares one voice) |
-| windows / lattice | 1.4 (inkSoft) |
-| domes, urns, finials, statues | 1.6–2 |
-| ghost slabs | 1.4 (inkFaint) |
+| ground rule | 2.6 (ink) |
+| building outline | 1.9–2.2 (inkSoft) |
+| panes / small squares | 1.0–1.2 (inkFaint) |
+| domes, lunette, arcade arches | 1.3–1.6 |
+| statue | 1.6 |
+| mast lattice | 0.8–1.3 (inkFaint) |
 
 ## 3. Subject reference (drawable elements)
 

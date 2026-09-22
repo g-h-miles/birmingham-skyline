@@ -4,7 +4,7 @@
   'use strict';
 
   FILM.W = 1920;
-  FILM.H = 560;
+  FILM.H = 676;
   FILM.FPS = 24;
 
   FILM.TIMELINE = {
@@ -12,7 +12,7 @@
     bpm: 100,
     duration: 13.2,
     width: 1920,
-    height: 560,
+    height: 676,
     shots: [
       {
         id: 'skyline',
