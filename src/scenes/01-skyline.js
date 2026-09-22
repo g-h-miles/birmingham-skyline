@@ -1,8 +1,9 @@
-// 01 skyline : Birmingham draws itself as a footer.
-// One travelling pen. The ground rule sweeps in, the back row ghosts in faint, then ten landmarks
-// ink themselves left to right (outline -> lattice -> crown), trees pop, clouds draw, doodles pop,
-// two cars cruise, and a bold serif wordmark wipes in below. See docs/storyboard.md for the grid.
-// Geometry is built once at load, deterministically (seeded); draw() reads only (ctx, t).
+// 01 skyline : Birmingham draws itself as a footer — reference-2 composition.
+// A dense, shoulder-to-shoulder band of fine ink lines: landmarks overlap and share the skyline,
+// domes, pediments, Gothic spires and a statue column, one thin ground rule, one light-tracked
+// wordmark. Geometry is built once at load (seeded); draw() reads only (ctx, t).
+// On the page the plate is transparent (FILM.transparent) so the ink sits on the page's own
+// background; tools/snap renders with the paper plate for review.
 (function () {
   'use strict';
 
@@ -15,7 +16,6 @@
   const H = 560;
   const GY = 432; // the ground rule
 
-  const lerp = (a, b, t) => a + (b - t * (a - b) - b); // guard: keep simple below
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const sstep = (a, b, x) => {
     const t = clamp01((x - a) / (b - a));
@@ -23,7 +23,7 @@
   };
   const seg = (t, a, b) => sstep(a, b, t);
   let SID = 1;
-  const sd = (k) => (LIB.hash(ID, k) & 0x7fffffff) || 7;
+  const sd = (k) => (LIB.hash(ID, k, SID++) & 0x7fffffff) || 7;
 
   // ---------------------------------------------------------------------------
   // geometry helpers -> dense polylines
@@ -58,9 +58,25 @@
     }
     return p;
   }
-  function cat(a, b) {
-    const p = a.concat(b.map((q) => q));
-    return p;
+  // a Gothic pointed arch, open at the bottom: apex at (cx, topY), springing at topY+hw
+  function pointed(cx, topY, botY, hw) {
+    return poly([[cx - hw, botY], [cx - hw, topY + hw], [cx, topY], [cx + hw, topY + hw], [cx + hw, botY]]);
+  }
+  // a dome sitting on a line at y: semicircle + finial
+  function dome(cx, y, r, ball) {
+    const s = [{ pts: arc(cx, y, r, Math.PI, TAU) }];
+    if (ball) s.push({ pts: circle(cx, y - r - (ball + 2), ball), w: 1.8 });
+    return s;
+  }
+  // row of arches along the ground
+  function arches(centers, r) {
+    return centers.map((x) => ({ pts: arc(x, GY, r, Math.PI, TAU), w: 1.8 }));
+  }
+  // short vertical ticks standing on a line (balustrades, roof combing)
+  function ticks(x0, x1, y, h, n, o) {
+    const S = [];
+    for (let i = 0; i <= n; i++) S.push({ pts: ln(x0 + ((x1 - x0) * i) / n, y, x0 + ((x1 - x0) * i) / n, y - h), ...o });
+    return S;
   }
   // window lattice: floor lines then column lines across [x0..x1] x [y0..y1]
   function lattice(x0, y0, x1, y1, rows, cols, rseed) {
@@ -68,12 +84,12 @@
     const S = [];
     for (let i = 1; i <= rows; i++) {
       const y = y0 + ((y1 - y0) * i) / (rows + 1);
-      S.push({ pts: ln(x0, y, x1, y) });
+      S.push({ pts: ln(x0, y, x1, y), w: 1.4, c: PAL.inkSoft });
     }
     for (let j = 1; j <= cols; j++) {
       const x = x0 + ((x1 - x0) * j) / (cols + 1);
       if (r() < 0.12) continue; // a few columns skipped: hand-doodled charm
-      S.push({ pts: ln(x, y0, x, y1) });
+      S.push({ pts: ln(x, y0, x, y1), w: 1.4, c: PAL.inkSoft });
     }
     return S;
   }
@@ -82,7 +98,6 @@
   // strokes and pen passes
   // ---------------------------------------------------------------------------
 
-  // Finalise a stroke list into pen-pass geometry: { pts, cum, len, w, c, seed }
   function pass(strokes, o) {
     o = o || {};
     const list = [];
@@ -95,7 +110,7 @@
         pts: s.pts,
         cum,
         len: cum[cum.length - 1],
-        w: s.w != null ? s.w : o.w || 3.4,
+        w: s.w != null ? s.w : o.w || 2.4,
         c: s.c || o.c || PAL.ink,
         seed: s.seed != null ? s.seed : sd(o.tag || 'p') + list.length,
       });
@@ -122,9 +137,7 @@
     return out.length >= 2 ? out : null;
   }
 
-  // Draw the pen pass at progress u (0..1): strokes ink in order, one continuous pen.
-  function drawPass(ctx, P, u, o) {
-    o = o || {};
+  function drawPass(ctx, P, u) {
     if (!(u > 0)) return;
     let budget = clamp01(u) * P.total;
     for (const st of P.strokes) {
@@ -134,407 +147,413 @@
       budget -= st.len;
       if (!pts) continue;
       LIB.inkPath(ctx, pts, {
-        width: st.w * (o.scaleW || 1),
+        width: st.w,
         color: st.c,
         seed: st.seed,
         smooth: true,
-        wobble: st.w > 2.5 ? 2 : 1.2,
-        tremble: 0.4,
-        taper: [10, f >= 1 ? 22 : 1],
-        alpha: o.alpha != null ? o.alpha : 1,
+        wobble: st.w >= 2 ? 1.5 : 1.1,
+        tremble: 0.35,
+        taper: [8, f >= 1 ? 18 : 1],
       });
     }
-  }
-
-  // A pop element: small and fully drawn, appearing with an alpha ramp.
-  function drawPop(ctx, el, t) {
-    const a = seg(t, el.t0, el.t0 + 0.18);
-    if (a <= 0) return;
-    ctx.save();
-    ctx.globalAlpha = a;
-    for (const s of el.P.strokes)
-      LIB.inkPath(ctx, s.pts, { width: s.w, color: s.c, seed: s.seed, smooth: true, taper: [8, 14], wobble: 1 });
-    ctx.restore();
   }
 
   // ---------------------------------------------------------------------------
   // the plate: geometry built once
   // ---------------------------------------------------------------------------
 
-  // ---- ground rule
-  const GROUND = pass([{ pts: ln(24, GY, 1896, GY) }], { w: 6, tag: 'grd' });
+  const OW = 2.4; // hero outline width — thin, uniform, like the reference
 
-  // ---- back row (inkFaint), drawn behind the landmarks
-  function ghostTower(x, w2, top, tag) {
-    const S = [
-      { pts: ln(x, GY, x, top) },
-      { pts: ln(x + w2, GY, x + w2, top) },
-      { pts: ln(x, top, x + w2, top) },
-    ];
-    const rows = Math.round((GY - top) / 34);
-    for (let i = 1; i < rows; i++) S.push({ pts: ln(x, top + ((GY - top) * i) / rows, x + w2, top + ((GY - top) * i) / rows) });
-    return pass(S, { w: 1.8, c: PAL.inkFaint, tag });
+  // ---- ground rule: one thin line, not a slab
+  const GROUND = pass([{ pts: ln(24, GY, 1896, GY), w: 2.4 }], { tag: 'grd' });
+
+  // ---- faint back fill: a few slim ghosts peeking between the band's tops
+  function ghost(x0, x1, top, tag) {
+    return pass(
+      [{ pts: ln(x0, GY, x0, top) }, { pts: ln(x1, GY, x1, top) }, { pts: ln(x0, top, x1, top) }].concat(
+        [0.35, 0.6].map((f) => ({ pts: ln(x0, top + (GY - top) * f, x1, top + (GY - top) * f) }))
+      ),
+      { w: 1.4, c: PAL.inkFaint, tag }
+    );
   }
   const ghosts = [
-    { P: ghostTower(428, 46, 210, 'g1'), t0: 1.15 },
-    { P: ghostTower(800, 44, 232, 'g2'), t0: 1.4 },
-    { P: ghostTower(1690, 48, 250, 'g4'), t0: 1.65 },
-  ];
-  // a gasholder between b7 and b8
-  const gasholder = pass(
-    [
-      { pts: ln(1436, GY, 1436, 320) },
-      { pts: ln(1474, GY, 1474, 320) },
-      { pts: arc(1455, 320, 19, Math.PI, TAU) },
-      { pts: circle(1455, 294, 3.4) },
-      { pts: ln(1436, 336, 1474, 386) },
-      { pts: ln(1474, 336, 1436, 386) },
-    ],
-    { w: 1.8, c: PAL.inkFaint, tag: 'gas' }
-  );
-  ghosts.push({ P: gasholder, t0: 1.85 });
-
-  // ---- landmarks: each is an ordered pen pass. t0s L->R, staggered.
-  const bStart = 1.5,
-    bStepT = 0.55,
-    bDur = 1.5;
-
-  // 1. the Rotunda
-  const rotunda = pass(
-    [
-      { pts: ln(70, GY, 70, 190) },
-      { pts: ln(220, GY, 220, 190) },
-      { pts: arc(145, 190, 75, Math.PI, TAU) },
-      { pts: ln(145, 115, 145, 88) },
-      { pts: ln(138, 98, 152, 98) },
-      ...lattice(78, 244, 212, 384, 4, 6, 'rot'),
-      { pts: arc(145, GY, 22, Math.PI, TAU) },
-    ],
-    { tag: 'rot' }
-  );
-
-  // 2. back-to-back terrace
-  const backToBack = pass(
-    [
-      { pts: ln(250, GY, 250, 350) },
-      { pts: poly([[250, 350], [292, 318], [334, 350], [376, 318], [420, 350]]) },
-      { pts: ln(420, 350, 420, GY) },
-      { pts: poly([[286, 318], [286, 296], [298, 296], [298, 320]]) },
-      { pts: poly([[370, 318], [370, 296], [382, 296], [382, 320]]) },
-      { pts: ln(289, 296, 289, 288) },
-      { pts: ln(295, 296, 295, 288) },
-      { pts: ln(373, 296, 373, 288) },
-      { pts: ln(379, 296, 379, 288) },
-      { pts: poly([[272, GY], [272, 398], [288, 398], [288, GY]]), w: 2.4 },
-      { pts: poly([[324, GY], [324, 398], [340, 398], [340, GY]]), w: 2.4 },
-      { pts: poly([[376, GY], [376, 398], [392, 398], [392, GY]]), w: 2.4 },
-      { pts: ln(274, 372, 286, 372), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(326, 372, 338, 372), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(378, 372, 390, 372), w: 1.6, c: PAL.inkSoft },
-    ],
-    { tag: 'b2b' }
-  );
-
-  // 3. BT Tower
-  const btTower = pass(
-    [
-      { pts: ln(470, GY, 470, 120) },
-      { pts: ln(516, GY, 516, 120) },
-      { pts: poly([[470, 120], [462, 112], [524, 112], [516, 120]]) },
-      { pts: ln(493, 112, 493, 58) },
-      { pts: ln(486, 74, 500, 74), w: 2.2 },
-      { pts: ln(488, 88, 498, 88), w: 2.2 },
-      { pts: ln(470, 180, 516, 180), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(470, 258, 516, 258), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(470, 336, 516, 336), w: 1.6, c: PAL.inkSoft },
-    ],
-    { tag: 'bt' }
-  );
-
-  // 4. the Colmore hero block: pediment + two corner orbs (reference 1, centre)
-  const colmore = pass(
-    [
-      { pts: ln(560, GY, 560, 110) },
-      { pts: ln(790, GY, 790, 110) },
-      { pts: ln(560, 110, 790, 110) },
-      { pts: ln(560, 110, 675, 74) },
-      { pts: ln(675, 74, 790, 110) },
-      { pts: circle(566, 98, 10), w: 2.6 },
-      { pts: circle(784, 98, 10), w: 2.6 },
-      ...lattice(574, 130, 776, 402, 8, 7, 'colm'),
-      { pts: arc(675, GY, 26, Math.PI, TAU), w: 2.6 },
-    ],
-    { tag: 'colm' }
-  );
-
-  // 5. St Philip's Cathedral
-  const cathedral = pass(
-    [
-      { pts: ln(840, GY, 840, 330) },
-      { pts: ln(990, GY, 990, 330) },
-      { pts: ln(840, 330, 990, 330) },
-      { pts: ln(888, 330, 888, 262) },
-      { pts: ln(942, 330, 942, 262) },
-      { pts: arc(915, 262, 27, Math.PI, TAU) },
-      { pts: circle(915, 228, 5), w: 2.4 },
-      { pts: circle(846, 322, 4), w: 2.2 },
-      { pts: circle(984, 322, 4), w: 2.2 },
-      { pts: ln(846, 356, 880, 356), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(950, 356, 984, 356), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(846, 388, 880, 388), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(950, 388, 984, 388), w: 1.6, c: PAL.inkSoft },
-      { pts: poly([[903, GY], [903, 376], [927, 376], [927, GY]]), w: 2.4 },
-      { pts: arc(915, 376, 12, Math.PI, TAU), w: 2.4 },
-    ],
-    { tag: 'cat' }
-  );
-
-  // 6. New Street Station: train-shed arc behind the arcade facade
-  const station = pass(
-    [
-      { pts: ln(1020, GY, 1020, 336) },
-      { pts: ln(1280, GY, 1280, 336) },
-      { pts: arc(1150, 336, 120, Math.PI, TAU) },
-      { pts: arc(1150, 336, 96, Math.PI, TAU), w: 1.8 },
-      { pts: arc(1150, 336, 72, Math.PI, TAU), w: 1.8 },
-      { pts: ln(1020, 336, 1280, 336) },
-      { pts: arc(1046, 336, 16, Math.PI, TAU), w: 2.4 },
-      { pts: arc(1254, 336, 16, Math.PI, TAU), w: 2.4 },
-      { pts: circle(1150, 362, 9), w: 2.2 },
-      { pts: ln(1150, 362, 1150, 356), w: 1.6 },
-      { pts: ln(1150, 362, 1155, 364), w: 1.6 },
-    ].concat(
-      [1044, 1086, 1128, 1170, 1212, 1256].map((x) => ({ pts: arc(x, GY, 17, Math.PI, TAU), w: 2.2 }))
-    ),
-    { tag: 'stn' }
-  );
-
-  // 7. St Martin in the Bullring: stepped steeple
-  const stMartin = pass(
-    [
-      { pts: ln(1344, GY, 1344, 190) },
-      { pts: ln(1416, GY, 1416, 190) },
-      { pts: ln(1344, 190, 1416, 190) },
-      { pts: ln(1356, 190, 1356, 150) },
-      { pts: ln(1404, 190, 1404, 150) },
-      { pts: ln(1356, 150, 1404, 150) },
-      { pts: ln(1356, 150, 1380, 106) },
-      { pts: ln(1404, 150, 1380, 106) },
-      { pts: circle(1380, 100, 4), w: 2.2 },
-      { pts: ln(1344, 250, 1416, 250), w: 1.6, c: PAL.inkSoft },
-      { pts: ln(1344, 320, 1416, 320), w: 1.6, c: PAL.inkSoft },
-      { pts: poly([[1362, 392], [1362, 318], [1380, 296], [1398, 318], [1398, 392]]), w: 2.2 },
-    ],
-    { tag: 'stm' }
-  );
-
-  // 8. Library of Birmingham: stacked cantilever rings
-  const library = pass(
-    [
-      { pts: ln(1480, GY, 1480, 266) },
-      { pts: ln(1610, GY, 1610, 266) },
-      { pts: ln(1480, 266, 1610, 266) },
-      { pts: ln(1468, 288, 1622, 288) },
-      { pts: ln(1468, 324, 1622, 324) },
-      { pts: ln(1468, 360, 1622, 360) },
-      { pts: ln(1468, 396, 1622, 396) },
-      { pts: circle(1500, 306, 5), w: 1.8, c: PAL.inkSoft },
-      { pts: circle(1532, 306, 5), w: 1.8, c: PAL.inkSoft },
-      { pts: circle(1564, 306, 5), w: 1.8, c: PAL.inkSoft },
-      { pts: circle(1596, 306, 5), w: 1.8, c: PAL.inkSoft },
-    ],
-    { tag: 'lib' }
-  );
-
-  // 9. Chamberlain Memorial: slim column + stick statue with raised arm
-  const chamberlain = pass(
-    [
-      { pts: ln(1642, GY, 1642, 416) },
-      { pts: ln(1674, GY, 1674, 416) },
-      { pts: ln(1638, 416, 1678, 416) },
-      { pts: ln(1650, 414, 1650, 124) },
-      { pts: ln(1666, 414, 1666, 124) },
-      { pts: ln(1658, 410, 1658, 130), w: 1.2, c: PAL.inkSoft },
-      { pts: ln(1644, 124, 1672, 124) },
-      { pts: ln(1644, 114, 1672, 114), w: 2.6 },
-      { pts: circle(1658, 68, 6), w: 2.2 },
-      { pts: ln(1658, 74, 1658, 98), w: 2.2 },
-      { pts: ln(1658, 82, 1648, 60), w: 2.2 },
-      { pts: ln(1658, 84, 1667, 94), w: 2.2 },
-      { pts: ln(1658, 98, 1652, 114), w: 2.2 },
-      { pts: ln(1658, 98, 1664, 114), w: 2.2 },
-    ],
-    { tag: 'chg' }
-  );
-
-  // 10. the Cube: a tilted cube on a slim shaft
-  const cubePts = (() => {
-    const cx = 1781,
-      cy = 196,
-      r = 40;
-    const hex = [];
-    for (let i = 0; i < 6; i++) {
-      const a = ((30 + i * 60) * Math.PI) / 180;
-      hex.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
-    }
-    const loop = hex.concat([hex[0]]);
-    return { loop, cx, cy, up: hex[0], ur: hex[2], ul: hex[4] };
-  })();
-  const theCube = pass(
-    [
-      { pts: ln(1770, GY, 1770, 238) },
-      { pts: ln(1792, GY, 1792, 238) },
-      { pts: ln(1766, 238, 1796, 238) },
-      { pts: poly(cubePts.loop) },
-      { pts: ln(cubePts.cx, cubePts.cy, cubePts.up[0], cubePts.up[1]) },
-      { pts: ln(cubePts.cx, cubePts.cy, cubePts.ur[0], cubePts.ur[1]) },
-      { pts: ln(cubePts.cx, cubePts.cy, cubePts.ul[0], cubePts.ul[1]) },
-    ],
-    { tag: 'cube' }
-  );
-
-  const landmarks = [
-    { P: rotunda },
-    { P: backToBack },
-    { P: btTower },
-    { P: colmore },
-    { P: cathedral },
-    { P: station },
-    { P: stMartin },
-    { P: library },
-    { P: chamberlain },
-    { P: theCube },
-  ].map((m, i) => {
-    m.t0 = bStart + i * bStepT;
-    m.dur = bDur;
-    return m;
-  });
-
-  // ---- trees: trunk then canopy, popping between the buildings
-  function tree(cx, rc, th, tag) {
-    return pass(
-      [
-        { pts: ln(cx, GY, cx, GY - th), w: 2.4 },
-        { pts: circle(cx, GY - th - rc + 5, rc), w: 2.4 },
-      ],
-      { tag }
-    );
-  }
-  const trees = [
-    { P: tree(232, 16, 20, 't1'), t0: 6.6 },
-    { P: tree(530, 18, 24, 't2'), t0: 6.95 },
-    { P: tree(820, 15, 20, 't3'), t0: 7.3 },
-    { P: tree(1298, 17, 22, 't4'), t0: 7.65 },
-    { P: tree(1710, 16, 20, 't5'), t0: 8.0 },
-    { P: tree(1862, 19, 24, 't6'), t0: 8.3 },
+    { P: ghost(424, 452, 196, 'gA'), t0: 1.15 },
+    { P: ghost(700, 728, 208, 'gB'), t0: 1.6 },
+    { P: ghost(1102, 1128, 202, 'gC'), t0: 2.0 },
   ];
 
-  // ---- clouds: scalloped arcs on a base line + a trailing dash (reference 1)
-  function cloud(bumps, baseY, tag) {
-    let top = [];
-    for (const [bcx, br] of bumps) top = cat(top, arc(bcx, baseY, br, Math.PI, TAU));
-    const x0 = bumps[0][0] - bumps[0][1] - 6;
-    const last = bumps[bumps.length - 1];
-    const x1 = last[0] + last[1] + 6;
-    return pass(
-      [
-        { pts: top, w: 2.2, c: PAL.inkSoft },
-        { pts: ln(x0, baseY + 2, x1, baseY + 2), w: 2.2, c: PAL.inkSoft },
-        { pts: ln(x0 + 14, baseY + 14, x1 - 24, baseY + 14), w: 1.8, c: PAL.inkFaint },
-      ],
-      { tag }
-    );
-  }
-  const clouds = [
-    { P: cloud([[292, 26], [330, 34], [368, 24]], 84, 'c1'), t0: 8.1 },
-    { P: cloud([[1152, 22], [1186, 30]], 58, 'c2'), t0: 8.5 },
-    { P: cloud([[1676, 20], [1706, 26]], 114, 'c3'), t0: 8.9 },
-  ];
+  // ---- the band: nineteen overlapping buildings, shoulder to shoulder, L->R
+  const S = []; // {P, t0} built below in order
 
-  // ---- doodles that pop: birds, plus signs, small circles
-  function bird(x, y) {
-    return pass(
-      [
-        { pts: arc(x - 7, y + 2, 8, Math.PI * 1.12, Math.PI * 1.9), w: 1.8, c: PAL.inkSoft },
-        { pts: arc(x + 7, y + 2, 8, Math.PI * 1.1, Math.PI * 1.88), w: 1.8, c: PAL.inkSoft },
-      ],
-      { tag: 'bird' + x }
-    );
-  }
-  function plus(x, y) {
-    return pass(
-      [
-        { pts: ln(x - 6, y, x + 6, y), w: 1.8, c: PAL.inkSoft },
-        { pts: ln(x, y - 6, x, y + 6), w: 1.8, c: PAL.inkSoft },
-      ],
-      { tag: 'pl' + x + y }
-    );
-  }
-  function dot(x, y) {
-    return pass([{ pts: circle(x, y, 4.5), w: 1.8, c: PAL.inkSoft }], { tag: 'dot' + x + y });
-  }
-  let pt = 8.7;
-  const pops = []
-    .concat(
-      [[480, 150], [516, 134], [960, 120], [1452, 96], [1490, 112]].map((p) => ({ P: bird(p[0], p[1]), t0: (pt += 0.16) }))
-    )
-    .concat(
-      [[150, 150], [600, 60], [900, 92], [1120, 124], [1560, 78], [1862, 240]].map((p) => ({ P: plus(p[0], p[1]), t0: (pt += 0.14) }))
-    )
-    .concat([[70, 300], [1042, 62], [1602, 84], [1880, 128]].map((p) => ({ P: dot(p[0], p[1]), t0: (pt += 0.13) })));
+  // 1. gridded corner block with roof hut
+  const b1 = pass(
+    [
+      { pts: ln(24, GY, 24, 232), w: OW },
+      { pts: ln(148, GY, 148, 232), w: OW },
+      { pts: ln(24, 232, 148, 232), w: OW },
+      { pts: poly([[62, 232], [62, 210], [110, 210], [110, 232]]) },
+      { pts: ln(86, 210, 86, 192), w: 1.8 },
+      ...lattice(32, 244, 140, 418, 7, 6, 'b1'),
+      { pts: arc(86, GY, 14, Math.PI, TAU), w: 1.8 },
+    ],
+    { tag: 'b1' }
+  );
 
-  // ---- cars: fully drawn little cartoons that cruise along the ground
-  function carGeometry(tag) {
-    return pass(
-      [
-        { pts: ln(2, GY - 11, 76, GY - 11), w: 2.4 },
-        { pts: poly([[14, GY - 13], [22, GY - 29], [46, GY - 29], [54, GY - 13]]), w: 2.4 },
-        { pts: circle(20, GY - 6, 6), w: 2.2 },
-        { pts: circle(58, GY - 6, 6), w: 2.2 },
-        { pts: ln(30, GY - 29, 30, GY - 13), w: 1.6, c: PAL.inkSoft },
-        { pts: ln(40, GY - 29, 40, GY - 13), w: 1.6, c: PAL.inkSoft },
-        { pts: circle(73, GY - 16, 2.2), w: 1.8 },
-      ],
-      { tag }
-    );
-  }
-  const carA = { P: carGeometry('carA'), t0: 9.4, v: 230, from: -80, dir: 1 };
-  const carB = { P: carGeometry('carB'), t0: 10.3, v: 245, from: 2000, dir: -1 };
+  // 2. cupola tower: drum, shallow dome, finial
+  const b2 = pass(
+    [
+      { pts: ln(132, GY, 132, 205), w: OW },
+      { pts: ln(224, GY, 224, 205), w: OW },
+      { pts: ln(128, 205, 228, 205), w: OW },
+      ...dome(178, 205, 26, 3.5),
+      { pts: ln(164, 190, 164, 203), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(192, 190, 192, 203), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(136, 246, 220, 246), w: 1.6 },
+      ...lattice(140, 254, 216, 418, 5, 4, 'b2'),
+    ],
+    { tag: 'b2' }
+  );
 
-  function drawCar(ctx, car, t) {
-    if (t < car.t0) return;
-    const x = car.from + car.dir * car.v * (t - car.t0);
-    if (x < -120 || x > 2040) return;
-    ctx.save();
-    ctx.translate(x, 0);
-    if (car.dir < 0) ctx.scale(-1, 1);
-    for (const s of car.P.strokes)
-      LIB.inkPath(ctx, s.pts, { width: s.w, color: s.c, seed: s.seed, smooth: true, taper: [8, 14], wobble: 1 });
-    ctx.restore();
-  }
+  // 3. striped slab with stepped cap
+  const b3 = pass(
+    [
+      { pts: ln(210, GY, 210, 150), w: OW },
+      { pts: ln(302, GY, 302, 150), w: OW },
+      { pts: ln(210, 150, 302, 150), w: OW },
+      { pts: poly([[236, 150], [236, 132], [276, 132], [276, 150]]) },
+      ...lattice(218, 164, 294, 418, 2, 5, 'b3'),
+      { pts: ln(210, 300, 302, 300), w: 1.4, c: PAL.inkSoft },
+    ],
+    { tag: 'b3' }
+  );
+
+  // 4. Gothic spire with a small flag
+  const b4 = pass(
+    [
+      { pts: ln(290, GY, 290, 240), w: OW },
+      { pts: ln(352, GY, 352, 240), w: OW },
+      { pts: ln(286, 240, 356, 240), w: OW },
+      { pts: ln(290, 240, 321, 132), w: OW },
+      { pts: ln(352, 240, 321, 132), w: OW },
+      { pts: circle(321, 124, 3.2), w: 1.8 },
+      { pts: ln(321, 121, 321, 96), w: 1.6 },
+      { pts: poly([[321, 96], [342, 103], [321, 111]]), w: 1.6 },
+      { pts: pointed(321, 268, 392, 15), w: 1.8 },
+      { pts: ln(290, 320, 352, 320), w: 1.4, c: PAL.inkSoft },
+      { pts: pointed(321, 402, GY, 11), w: 1.8 },
+    ],
+    { tag: 'b4' }
+  );
+
+  // 5. pediment tower with corner urns
+  const b5 = pass(
+    [
+      { pts: ln(344, GY, 344, 176), w: OW },
+      { pts: ln(458, GY, 458, 176), w: OW },
+      { pts: ln(344, 176, 458, 176), w: OW },
+      { pts: ln(340, 176, 401, 140), w: OW },
+      { pts: ln(462, 176, 401, 140), w: OW },
+      { pts: circle(348, 168, 4), w: 1.8 },
+      { pts: circle(454, 168, 4), w: 1.8 },
+      ...lattice(352, 192, 450, 418, 6, 5, 'b5'),
+    ],
+    { tag: 'b5' }
+  );
+
+  // 6. turret cluster: twin small domes flanking a taller central dome
+  const b6 = pass(
+    [
+      { pts: ln(442, GY, 442, 214), w: OW },
+      { pts: ln(548, GY, 548, 214), w: OW },
+      { pts: ln(442, 214, 476, 214), w: OW },
+      { pts: ln(514, 214, 548, 214), w: OW },
+      { pts: arc(456, 214, 13, Math.PI, TAU), w: OW },
+      { pts: arc(534, 214, 13, Math.PI, TAU), w: OW },
+      { pts: ln(478, 214, 478, 196), w: OW },
+      { pts: ln(512, 214, 512, 196), w: OW },
+      { pts: ln(474, 196, 516, 196), w: OW },
+      ...dome(495, 196, 17, 3),
+      { pts: ln(486, 196, 486, 210), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(495, 196, 495, 210), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(504, 196, 504, 210), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(442, 250, 548, 250), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(442, 296, 548, 296), w: 1.4, c: PAL.inkSoft },
+      ...arches([466, 495, 524], 12),
+    ],
+    { tag: 'b6' }
+  );
+
+  // 7. classical front: pediment over a colonnade, steps to the ground
+  const b7 = pass(
+    [
+      { pts: ln(532, GY, 532, 296), w: OW },
+      { pts: ln(704, GY, 704, 296), w: OW },
+      { pts: ln(528, 296, 708, 296), w: OW },
+      { pts: ln(528, 296, 618, 258), w: OW },
+      { pts: ln(708, 296, 618, 258), w: OW },
+      { pts: circle(618, 280, 4), w: 1.6 },
+      ...[548, 572, 596, 644, 668, 692].map((x) => ({ pts: ln(x, 300, x, 418), w: 1.8 })),
+      { pts: ln(536, 418, 700, 418), w: 1.8 },
+      { pts: ln(530, 425, 706, 425), w: 1.8 },
+      { pts: pointed(620, 356, 418, 14), w: 1.8 },
+    ],
+    { tag: 'b7' }
+  );
+
+  // 8. slim dome bandstand
+  const b8 = pass(
+    [
+      { pts: ln(688, GY, 688, 238), w: OW },
+      { pts: ln(752, GY, 752, 238), w: OW },
+      { pts: ln(684, 238, 756, 238), w: OW },
+      ...dome(720, 238, 16, 3),
+      { pts: ln(688, 284, 752, 284), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(688, 340, 752, 340), w: 1.4, c: PAL.inkSoft },
+      ...lattice(696, 292, 744, 416, 2, 2, 'b8'),
+    ],
+    { tag: 'b8' }
+  );
+
+  // 9. tall Gothic tower: narrow stage, spire, rose window, twin lights
+  const b9 = pass(
+    [
+      { pts: ln(746, GY, 746, 190), w: OW },
+      { pts: ln(836, GY, 836, 190), w: OW },
+      { pts: ln(746, 190, 836, 190), w: OW },
+      { pts: ln(764, 190, 764, 150), w: OW },
+      { pts: ln(818, 190, 818, 150), w: OW },
+      { pts: ln(764, 150, 818, 150), w: OW },
+      { pts: ln(764, 150, 791, 92), w: OW },
+      { pts: ln(818, 150, 791, 92), w: OW },
+      { pts: circle(791, 85, 3.2), w: 1.8 },
+      { pts: circle(791, 212, 8), w: 1.6 },
+      { pts: pointed(772, 262, 340, 9), w: 1.8 },
+      { pts: pointed(810, 262, 340, 9), w: 1.8 },
+      { pts: ln(746, 366, 836, 366), w: 1.4, c: PAL.inkSoft },
+      { pts: pointed(791, 392, GY, 13), w: 1.8 },
+    ],
+    { tag: 'b9' }
+  );
+
+  // 10. banded office block with roof balustrade
+  const b10 = pass(
+    [
+      { pts: ln(828, GY, 828, 246), w: OW },
+      { pts: ln(948, GY, 948, 246), w: OW },
+      { pts: ln(828, 246, 948, 246), w: OW },
+      ...ticks(838, 938, 246, 12, 7, { w: 1.4 }),
+      ...lattice(836, 262, 940, 418, 4, 4, 'b10'),
+    ],
+    { tag: 'b10' }
+  );
+
+  // 11. stepped steeple with clock and belfry lights
+  const b11 = pass(
+    [
+      { pts: ln(934, GY, 934, 360), w: OW },
+      { pts: ln(934, 360, 944, 344), w: 1.8 },
+      { pts: ln(944, GY, 944, 180), w: OW },
+      { pts: ln(1020, GY, 1020, 180), w: OW },
+      { pts: ln(944, 180, 1020, 180), w: OW },
+      { pts: ln(956, 180, 956, 140), w: OW },
+      { pts: ln(1008, 180, 1008, 140), w: OW },
+      { pts: ln(956, 140, 1008, 140), w: OW },
+      { pts: ln(956, 140, 982, 102), w: OW },
+      { pts: ln(1008, 140, 982, 102), w: OW },
+      { pts: circle(982, 95, 3.2), w: 1.8 },
+      { pts: circle(982, 224, 9), w: 1.6 },
+      { pts: ln(982, 224, 982, 217), w: 1.4 },
+      { pts: pointed(969, 268, 322, 8), w: 1.6 },
+      { pts: pointed(995, 268, 322, 8), w: 1.6 },
+    ],
+    { tag: 'b11' }
+  );
+
+  // 12. dense lattice slab with mast and orb
+  const b12 = pass(
+    [
+      { pts: ln(1016, GY, 1016, 158), w: OW },
+      { pts: ln(1132, GY, 1132, 158), w: OW },
+      { pts: ln(1016, 158, 1132, 158), w: OW },
+      { pts: poly([[1046, 158], [1046, 140], [1102, 140], [1102, 158]]) },
+      { pts: ln(1074, 140, 1074, 110), w: 1.6 },
+      { pts: circle(1074, 105, 3), w: 1.6 },
+      ...lattice(1024, 170, 1124, 418, 8, 6, 'b12'),
+    ],
+    { tag: 'b12' }
+  );
+
+  // 13. domed civic building: central drum and great dome over low wings
+  const b13 = pass(
+    [
+      { pts: ln(1118, GY, 1118, 300), w: OW },
+      { pts: ln(1252, GY, 1252, 300), w: OW },
+      { pts: ln(1118, 300, 1156, 300), w: OW },
+      { pts: ln(1214, 300, 1252, 300), w: OW },
+      { pts: ln(1156, 300, 1156, 262), w: OW },
+      { pts: ln(1214, 300, 1214, 262), w: OW },
+      { pts: ln(1152, 262, 1218, 262), w: OW },
+      { pts: arc(1185, 262, 29, Math.PI, TAU), w: OW },
+      { pts: poly([[1180, 230], [1180, 216], [1190, 216], [1190, 230]]), w: 1.6 },
+      { pts: circle(1185, 210, 3), w: 1.6 },
+      { pts: ln(1166, 266, 1166, 298), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1185, 266, 1185, 298), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1204, 266, 1204, 298), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1118, 348, 1156, 348), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1214, 348, 1252, 348), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1118, 390, 1156, 390), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1214, 390, 1252, 390), w: 1.4, c: PAL.inkSoft },
+      { pts: arc(1136, GY, 12, Math.PI, TAU), w: 1.8 },
+      { pts: arc(1234, GY, 12, Math.PI, TAU), w: 1.8 },
+      { pts: pointed(1185, 352, GY, 16), w: 1.8 },
+    ],
+    { tag: 'b13' }
+  );
+
+  // 14. terrace of gabled houses with chimneys (the band drops to street height)
+  const b14 = pass(
+    [
+      { pts: ln(1238, GY, 1238, 356), w: OW },
+      { pts: ln(1372, GY, 1372, 356), w: OW },
+      { pts: poly([[1238, 356], [1271, 330], [1304, 356], [1337, 330], [1372, 356]]) },
+      { pts: poly([[1266, 331], [1266, 313], [1277, 313], [1277, 331]]), w: 1.8 },
+      { pts: poly([[1332, 331], [1332, 313], [1343, 313], [1343, 331]]), w: 1.8 },
+      { pts: ln(1270, 313, 1270, 306), w: 1.4 },
+      { pts: ln(1336, 313, 1336, 306), w: 1.4 },
+      { pts: poly([[1256, GY], [1256, 396], [1270, 396], [1270, GY]]), w: 1.8 },
+      { pts: poly([[1294, GY], [1294, 396], [1308, 396], [1308, GY]]), w: 1.8 },
+      { pts: poly([[1334, GY], [1334, 396], [1348, 396], [1348, GY]]), w: 1.8 },
+      { pts: ln(1258, 372, 1268, 372), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1296, 372, 1306, 372), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1336, 372, 1346, 372), w: 1.4, c: PAL.inkSoft },
+    ],
+    { tag: 'b14' }
+  );
+
+  // 15. belfry tower with cone roof
+  const b15 = pass(
+    [
+      { pts: ln(1358, GY, 1358, 208), w: OW },
+      { pts: ln(1446, GY, 1446, 208), w: OW },
+      { pts: ln(1354, 208, 1450, 208), w: OW },
+      { pts: ln(1358, 208, 1402, 152), w: OW },
+      { pts: ln(1446, 208, 1402, 152), w: OW },
+      { pts: circle(1402, 145, 3.2), w: 1.8 },
+      { pts: pointed(1384, 240, 302, 8), w: 1.6 },
+      { pts: pointed(1420, 240, 302, 8), w: 1.6 },
+      { pts: ln(1358, 342, 1446, 342), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1358, 388, 1446, 388), w: 1.4, c: PAL.inkSoft },
+      { pts: pointed(1402, 398, GY, 12), w: 1.8 },
+    ],
+    { tag: 'b15' }
+  );
+
+  // 16. statue column: plinth, slim shaft, capital, figure with raised arm — the tallest peak (reference 2)
+  const b16 = pass(
+    [
+      { pts: ln(1450, GY, 1450, 360), w: OW },
+      { pts: ln(1502, GY, 1502, 360), w: OW },
+      { pts: ln(1446, 360, 1506, 360), w: OW },
+      { pts: ln(1446, 352, 1506, 352), w: 1.8 },
+      { pts: ln(1466, 352, 1466, 152), w: 1.8 },
+      { pts: ln(1486, 352, 1486, 152), w: 1.8 },
+      { pts: ln(1476, 346, 1476, 158), w: 1.1, c: PAL.inkFaint },
+      { pts: ln(1460, 152, 1492, 152), w: 1.8 },
+      { pts: ln(1460, 142, 1492, 142), w: 1.8 },
+      { pts: circle(1476, 117, 5), w: 1.8 },
+      { pts: ln(1476, 122, 1476, 134), w: 1.8 },
+      { pts: ln(1476, 124, 1463, 106), w: 1.8 },
+      { pts: ln(1476, 126, 1485, 132), w: 1.8 },
+      { pts: ln(1476, 134, 1471, 142), w: 1.6 },
+      { pts: ln(1476, 134, 1481, 142), w: 1.6 },
+    ],
+    { tag: 'b16' }
+  );
+
+  // 17. the Colmore block: pediment and two corner orbs over a dense lattice
+  const b17 = pass(
+    [
+      { pts: ln(1506, GY, 1506, 190), w: OW },
+      { pts: ln(1662, GY, 1662, 190), w: OW },
+      { pts: ln(1506, 190, 1662, 190), w: OW },
+      { pts: ln(1506, 190, 1584, 156), w: OW },
+      { pts: ln(1662, 190, 1584, 156), w: OW },
+      { pts: circle(1512, 180, 7), w: 2 },
+      { pts: circle(1656, 180, 7), w: 2 },
+      ...lattice(1514, 204, 1654, 418, 7, 7, 'b17'),
+      { pts: arc(1584, GY, 18, Math.PI, TAU), w: 1.8 },
+    ],
+    { tag: 'b17' }
+  );
+
+  // 18. crown slab: stepped top, combing, dense lattice
+  const b18 = pass(
+    [
+      { pts: ln(1646, GY, 1646, 160), w: OW },
+      { pts: ln(1758, GY, 1758, 160), w: OW },
+      { pts: ln(1646, 160, 1758, 160), w: OW },
+      { pts: ln(1666, 160, 1666, 142), w: OW },
+      { pts: ln(1738, 160, 1738, 142), w: OW },
+      { pts: ln(1666, 142, 1738, 142), w: OW },
+      ...ticks(1670, 1734, 142, 8, 5, { w: 1.4 }),
+      ...lattice(1654, 172, 1750, 418, 8, 5, 'b18'),
+    ],
+    { tag: 'b18' }
+  );
+
+  // 19. closing arcade with a pyramidal corner tower
+  const b19 = pass(
+    [
+      { pts: ln(1742, GY, 1742, 322), w: OW },
+      { pts: ln(1742, 322, 1830, 322), w: OW },
+      { pts: ln(1830, GY, 1830, 258), w: OW },
+      { pts: ln(1896, GY, 1896, 258), w: OW },
+      { pts: ln(1830, 258, 1896, 258), w: OW },
+      { pts: ln(1830, 258, 1863, 224), w: OW },
+      { pts: ln(1896, 258, 1863, 224), w: OW },
+      { pts: circle(1863, 217, 3.2), w: 1.8 },
+      { pts: ln(1750, 322, 1750, 312), w: 1.4 },
+      { pts: ln(1770, 322, 1770, 312), w: 1.4 },
+      { pts: ln(1790, 322, 1790, 312), w: 1.4 },
+      { pts: ln(1810, 322, 1810, 312), w: 1.4 },
+      { pts: ln(1742, 352, 1830, 352), w: 1.4, c: PAL.inkSoft },
+      ...arches([1760, 1788, 1816], 13),
+      { pts: pointed(1863, 286, 318, 9), w: 1.6 },
+      { pts: ln(1838, GY, 1838, 380), w: 1.4, c: PAL.inkSoft },
+      { pts: ln(1888, GY, 1888, 380), w: 1.4, c: PAL.inkSoft },
+    ],
+    { tag: 'b19' }
+  );
+
+  const band = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19];
+  const bStart = 1.4,
+    bStepT = 0.46,
+    bDur = 1.35;
+  const buildings = band.map((P, i) => ({ P, t0: bStart + i * bStepT, dur: bDur }));
 
   // ---------------------------------------------------------------------------
-  // wordmark
+  // wordmark: light serif caps, wide tracking (reference 2)
   // ---------------------------------------------------------------------------
 
-  const WORD = 'Birmingham';
-  const FONT = '700 92px Georgia, "Times New Roman", serif';
+  const WORD = 'BIRMINGHAM';
+  const FONT = '400 60px Georgia, "Times New Roman", serif';
 
   function drawWordmark(ctx, t) {
-    const u = seg(t, 10.8, 12.1);
+    const u = seg(t, 10.9, 12.2);
     if (u <= 0) return;
     ctx.save();
     ctx.font = FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '14px';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '30px';
     const tw = ctx.measureText(WORD).width;
-    const x0 = W / 2 - tw / 2 - 10;
+    const x0 = W / 2 - tw / 2 - 12;
     ctx.beginPath();
-    ctx.rect(x0, 440, (tw + 20) * u, H - 440);
+    ctx.rect(x0, 444, (tw + 24) * u, H - 444);
     ctx.clip();
+    ctx.globalAlpha = 0.85;
     ctx.fillStyle = PAL.ink;
-    ctx.fillText(WORD, W / 2, 528);
+    ctx.fillText(WORD, W / 2, 524);
     ctx.restore();
   }
 
@@ -545,26 +564,14 @@
   FILM.scene({
     id: ID,
     draw(ctx, t) {
-      // paper plate
-      ctx.fillStyle = PAL.paper;
-      ctx.fillRect(0, 0, FILM.W, FILM.H);
+      if (!FILM.transparent) {
+        ctx.fillStyle = PAL.paper;
+        ctx.fillRect(0, 0, FILM.W, FILM.H);
+      }
 
-      // back row ghosts in first, faint
       for (const g of ghosts) drawPass(ctx, g.P, seg(t, g.t0, g.t0 + 1.1));
-
-      // the ground rule sweeps left to right (beats 0-2)
       drawPass(ctx, GROUND, seg(t, 0, 1.15));
-
-      // landmarks, pen travelling left to right
-      for (const m of landmarks) drawPass(ctx, m.P, seg(t, m.t0, m.t0 + m.dur));
-
-      for (const tr of trees) drawPass(ctx, tr.P, seg(t, tr.t0, tr.t0 + 0.5));
-      for (const c of clouds) drawPass(ctx, c.P, seg(t, c.t0, c.t0 + 0.6));
-      for (const p of pops) drawPop(ctx, p, t);
-
-      drawCar(ctx, carA, t);
-      drawCar(ctx, carB, t);
-
+      for (const m of buildings) drawPass(ctx, m.P, seg(t, m.t0, m.t0 + m.dur));
       drawWordmark(ctx, t);
     },
   });

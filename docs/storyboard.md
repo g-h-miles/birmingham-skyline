@@ -3,18 +3,17 @@
 Logline: press Start and Birmingham draws itself along the footer of a blank page.
 
 Numbers: bpm 100 → beat 0.6 s. Duration 22 beats = **13.2 s**. One shot (a footer never cuts).
+The plate is transparent on the page (`FILM.transparent`, `post: false`); only the tools render it
+on the paper plate.
 
 ## Shot 1 — `skyline` — 0 → 13.2 s — illustrated
 
 | Beat | t | Event |
 |---|---|---|
-| 0–2 | 0–1.2 | ground rule sweeps left→right (width 6) |
-| 2–4 | 1.2–2.6 | back row inks in faint (lattice towers + gasholder), L→R staggered |
-| 2.5–12 | 1.5–7.3 | ten landmarks, pen pass each ~1.4 s, staggered 0.55 s L→R: Rotunda, back-to-backs, BT Tower, Colmore hero, St Philip's, New Street, St Martin, Library, Chamberlain, the Cube. Each pass = outline → lattice → crown |
-| 11–14 | 6.6–8.4 | trees pop in between buildings (trunk then canopy circle) |
-| 13.5–16 | 8.1–9.6 | clouds draw L→R; birds and `+`/`o` doodles pop |
-| 15.5–21 | 9.3–12.6 | two cars: one in from the left, one from the right, cruising along the ground |
-| 18–20 | 10.8–12.0 | wordmark wipe-in below the ground rule |
-| 21–22 | 12.6–13.2 | everything settles into boil hold |
+| 0–2 | 0–1.15 | thin ground rule sweeps left→right |
+| 2–5 | 1.15–2.9 | three faint ghost slabs peek up behind the band |
+| 2.3–20 | 1.4–11.0 | nineteen buildings shoulder-to-shoulder, one travelling pen each ~1.35 s, staggered 0.46 s L→R: gridded corner block, cupola tower, striped slab, Gothic spire with flag, pediment tower with urns, turret cluster, colonnaded classical front, slim bandstand dome, tall Gothic tower with rose window, banded block with balustrade, stepped steeple with clock, lattice slab with mast and orb, domed civic building, gabled terrace, belfry cone tower, statue column (the tallest peak, raised-arm figure), Colmore block with corner orbs, crown slab, closing arcade with pyramidal tower. Each pass = outline → lattice → crown |
+| 18–20.3 | 10.9–12.2 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
+| 21–22 | 12.6–13.2 | hold |
 
 Sound: none (page deliverable).

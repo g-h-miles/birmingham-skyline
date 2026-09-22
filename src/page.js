@@ -13,6 +13,9 @@
   const btn = document.getElementById('start');
   const hint = document.getElementById('hint');
 
+  // transparent plate: the ink sits on the page's own background, no paper seam, no grain
+  FILM.transparent = true;
+
   // crisp on retina, capped: logical 1920 px is already wider than any window
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   FILM.mount(canvas, { scale: dpr });

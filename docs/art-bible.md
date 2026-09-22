@@ -1,66 +1,65 @@
 # Art bible — birmingham-skyline footer
 
 Sections 1–2 replace the film defaults; everything else follows the procedural-film house style
-(flat colour, tone from hatching, hand-inked `inkPath`, boiling grain at 12 fps, determinism).
+(flat colour, tone from hatching, hand-inked `inkPath`, determinism). The page plate is
+transparent (no paper, no grain); only tools render on paper for review.
 
 ## 1. Frame
 
-1920 × 560 logical px. Ground rule at **y = 432**, x from 24 to 1896. Caption band y 460–556.
-Skyline occupies y 40–432; nothing readable in the outer 24 px margins.
+1920 × 560 logical px. Ground rule at **y = 432**, x from 24 to 1896. Caption band y 444–556.
+Skyline occupies y 90–432; nothing readable in the outer 24 px margins.
 
 ### 1.1 Composition
 
-Left→right skyline reading like the references: a dense row of landmark silhouettes sharing the one
-ground rule, small round trees between them, doodle sky above, the wordmark centred below.
-The two tallest accents (BT mast ≈ y 70, Chamberlain statue ≈ y 45) sit at the left third and the
-right edge, echoing reference 2.
+One continuous, dense band: buildings shoulder-to-shoulder with 10–30 px overlaps so the skyline
+reads as a single contour (reference 2, Desktop screenshot 2026-09-21 8.21.43 PM). Heights swing
+low→high twice across the band; the statue column (x≈1476) is the tallest peak. The sky is clean —
+trees, clouds, cars and doodles from reference 1 were tried and removed in favour of the
+reference-2 look.
 
 ## 2. Palette (subject, section 2.2 replacement)
 
-Line-art discipline from the references: ink on paper, no fills, no colour accents on buildings.
+Line-art discipline from the references: ink only, no fills, no colour accents on buildings.
 
 | Name | Hex | Use |
 |---|---|---|
-| paper | #EFE3C9 | plate (house) |
-| ink | #2A1C13 | ground rule, foreground outlines, wordmark |
-| inkSoft | #5B4331 | windows, detail strokes |
-| inkFaint | #8A735C | back-row towers only |
+| paper | #EFE3C9 | tools-review plate only |
+| ink | #2A1C13 | ground rule, building outlines, wordmark |
+| inkSoft | #5B4331 | windows, lattice, detail strokes |
+| inkFaint | #8A735C | ghost slabs behind the band, fluting |
 
 ### 2.1 Pen weights
 
 | Element | width |
 |---|---|
-| ground rule | 6 |
-| landmark outline | 3.4 |
-| back-row tower | 1.8 (inkFaint) |
-| windows / lattice | 1.6 (inkSoft) |
-| trees, clouds, doodles, cars | 2–2.4 |
-| statue, mast | 2.2 |
+| ground rule | 2.4 |
+| building outline | 2.4 (uniform — the band shares one voice) |
+| windows / lattice | 1.4 (inkSoft) |
+| domes, urns, finials, statues | 1.6–2 |
+| ghost slabs | 1.4 (inkFaint) |
 
 ## 3. Subject reference (drawable elements)
 
-- **Rotunda** — squat cylinder, domed cap, one mast, grid of tiny square windows. NOT a round tower with round windows (that's the Gas Street gasholder silhouette, used in the back row).
-- **Back-to-backs** — low terrace, two gable chimneys with pots, doors as ticks. NOT a high-rise.
-- **BT Tower** — slim shaft, one flare deck near the top, thin mast with two cross ticks. NOT a spire.
-- **Colmore hero block** (reference 1 centre) — broad flat-topped tower, triangular pediment between two corner orbs at the top, dense window lattice.
-- **St Philip's Cathedral** — low block, central squat tower with ogee dome + ball, urn dots at corners, arched door. NOT a gothic spire.
-- **New Street Station** — wide low façade with arcade arches, one big curved train-shed arc rising behind, clock dot. NOT a clock tower.
-- **St Martin in the Bullring** — stepped square steeple, short spire, ball finial, one tall pointed window.
-- **Library of Birmingham** — flat box of stacked offset ring shelves (3 cantilever lines overhanging), small circle windows in the bands. NOT a dome.
-- **Chamberlain Memorial** — very slim fluted column on stepped base, small stick-figure statue with one raised arm at the top (reference 2 right edge). The statue is ~28 px tall, never a blob.
-- **The Cube** — small tilted cube (hexagon + three inner edges) on a thin shaft.
-- **Back row** — generic lattice towers in inkFaint peeking in the gaps, plus one gasholder (cylinder + dome arcs + cross-brash X ticks).
-- **Trees** — trunk tick + single wobbled circle canopy, r 14–20. NOT leaf detail.
-- **Clouds** — 2–4 scalloped arcs on a flat base line + one offset dash beneath (reference 1).
-- **Doodles** — `+` crosses, small `o` circles, two-arc birds `‿‿`.
-- **Cars** — tiny cartoon: cabin box on body line, two wheel circles, drawn fully, driving.
-- **Wordmark** — "Birmingham", Georgia/serif bold ~96 px, letter-spacing ~12 px, ink. Revealed by a left→right wipe, not typed letter-by-letter.
+The band, left→right, all standing on the ground rule: gridded corner block with roof hut; cupola
+tower on a drum; striped slab with stepped cap; Gothic spire flying a small flag; pediment tower
+with corner urns; turret cluster (twin small domes flanking a taller central dome on a drum);
+colonnaded classical front with pediment, clock dot and steps; slim bandstand dome; tall Gothic
+tower with rose window, twin lights and spire; banded block with roof balustrade; stepped steeple
+with clock face and belfry lights; lattice slab with mast and orb; domed civic building over low
+banded wings; gabled terrace with chimneys, dropping to street height; belfry tower with cone roof;
+the statue column — plinth, fluted shaft, capital, stick figure with raised arm, the tallest peak
+(reference 2, right edge); the Colmore block — pediment with two corner orbs (reference 1, centre);
+crown slab with combed stepped top; closing arcade with a pyramidal corner tower.
+
+- **Wordmark** — "BIRMINGHAM" caps, Georgia/serif regular ~60 px, letter-spacing ~30 px, ink at
+  0.85 alpha. Revealed by a left→right wipe, not typed letter-by-letter.
 
 ### Mistakes to avoid
 
-- Filled buildings → house rule: tone from hatch/lattice only.
+- Filled buildings → house rule: tone from lattice only.
 - Rigid geometry → every line goes through `inkPath` wobble.
-- Landmarks overlapping so their outlines tangle → keep ≥ 18 px gaps between neighbours.
-- All buildings same height → heights must swing: 120, 340, 330, 190, 250, 300, 170, 360, 250-ish.
-- Caption competing with skyline → it sits alone in the band below the ground rule.
-- Windows before the outline exists → the pen draws each building outline first, lattice second.
+- Gaps between buildings → the band must read as one contour; neighbours overlap slightly.
+- Trees, cars, clouds, doodles → reference-2 look is a clean band and a clean sky.
+- All buildings same height → heights must swing; the statue column tops them all.
+- Caption competing with skyline → it sits alone below the ground rule.
+- Windows before the outline exists → the pen draws each outline first, lattice second, crown last.

@@ -1,11 +1,15 @@
 # Birmingham draws itself
 
-A blank page with a **Start** button. Press it and the Birmingham skyline hand-inks itself along
-the footer: a ground rule sweeps across, ten landmarks draw themselves one travelling pen-stroke at
-a time (Rotunda, back-to-backs, BT Tower, the Colmore block with its two corner orbs, St Philip's,
-New Street's train shed, St Martin's steeple, the Library's stacked rings, the Chamberlain column
-with its raised-arm statue, and the Cube), then trees, clouds, doodles and two little cars fill the
-scene and a bold serif **Birmingham** wipes in underneath.
+A blank page with a **Start** button. Press it and a dense shoulder-to-shoulder band of Birmingham
+landmarks hand-inks itself along the footer: a thin ground rule sweeps across, then a travelling
+pen draws nineteen overlapping buildings one stroke-pass at a time — cupola and turret-cluster
+domes, a colonnaded classical front, Gothic spires (one flying a flag), clock towers, a gabled
+terrace, the statue column with its raised-arm figure towering over the row, and the Colmore block
+with its two corner orbs — closing under a light-tracked **BIRMINGHAM**.
+
+The footer canvas is a **transparent plate**: the engine's paper background and grain are switched
+off (`FILM.transparent`, `post: false`), so the ink sits directly on whatever background your page
+shows — no seam.
 
 Made with the [procedural-film](https://github.com/g-h-miles/skills/tree/main/skills/procedural-film)
 pipeline — every pixel is computed in plain browser JavaScript from the FILM engine (no images, no

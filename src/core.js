@@ -188,7 +188,7 @@
     FILM.S = S;
     canvas.width = Math.max(2, Math.round((FILM.W * S) / 2) * 2);
     canvas.height = Math.max(2, Math.round((FILM.H * S) / 2) * 2);
-    ctxAttrs = { alpha: false };
+    ctxAttrs = { alpha: !!FILM.transparent }; // page footers can render on a transparent plate
     if (opts.readback) ctxAttrs.willReadFrequently = true;
     FILM.canvas = canvas;
     FILM.ctx = canvas.getContext('2d', ctxAttrs);
@@ -355,8 +355,10 @@
 
   function drawShot(ctx, shot, T, outgoing) {
     resetCtx(ctx, true);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    if (!FILM.transparent) {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
     const def = FILM.registry[shot.id];
     let t = Math.max(0, T - shot.start);
     if (outgoing) t = Math.min(t, shot.dur);
