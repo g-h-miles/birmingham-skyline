@@ -11,9 +11,9 @@ on the paper plate.
 | Beat | t | Event |
 |---|---|---|
 | 0–2 | 0–1.15 | thin ground rule sweeps left→right |
-| 2–10.5 | 1.2–6.2 | BACK plane rises: dense-grid slab, orb tower, Gothic spire, band slab, pinstripe, monolith, lattice mast |
-| 9.7–19 | 5.8–11.5 | FRONT plane, L→R, each knocking a sticker margin out of the backs: classical office (clerestory + arcade), cupola statue tower, baroque-crowned tower, the twin-domed station with hatched staircase, gabled church with rose window, banded statue tower, low closing arcade |
-| 19–21 | 11.5–12.8 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
+| 2–11 | 1.2–6.2 | BACK plane rises: dense-grid slab, orb tower with ogee light, canopied Gothic spire, banded giant, two banded towers, lattice mast, monolith, THE VULCAN (tablet raised, last of the backs) |
+| 9.7–18.3 | 5.8–11.0 | FRONT plane, L→R, each knocking a sticker margin out of the backs: dense-grid office (clerestory + arcade), domed monument, baroque gable tower, twin-domed Romanesque church with hatched staircase, double-gabled Gothic church with tracery, low annex |
+| 19–21.2 | 11.4–12.7 | wordmark **BIRMINGHAM** (light caps, wide tracking) wipes in below the ground rule |
 | 22 | 13.2 | hold |
 
 Sound: none (page deliverable).

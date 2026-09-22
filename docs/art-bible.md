@@ -40,31 +40,46 @@ Line-art discipline from the reference: pale hairline ink only, no fills, no col
 
 ## 3. Subject reference (drawable elements)
 
-Two depth planes. BACK plane (drawn first, thinner/simpler): BT-style lattice mast (x≈300); the
-ONE dense-grid slab (652-788); the hero orb tower — pediment + two corner orbs + banded window
-grid (940-1120); the Gothic octagonal spire with corner pinnacles (1224-1282); the pinstripe slab
-(1330-1448); the plain monolith right edge (1810-1872).
+Two depth planes. BACK plane (drawn first): the ONE dense-grid slab (560-700); the hero orb tower
+— pediment, two corner balls, twin pane columns and a tall central ogee light (880-1130); the
+canopied Gothic spire (1180-1260); the broad slab of dense HORIZONTAL floor lines stepping down
+right (1280-1500); the two VERTICAL-BANDED towers — A with square caps, three banded lights and a
+five-vertical base entrance (1516-1608), B lower with one light and pane runs (1620-1684); the slim
+lattice mast (≈420); THE VULCAN (1686-1746); the plain monolith (1752-1782).
 
-FRONT plane (drawn later, each KNOCKS its silhouette out of the backs — sticker overlaps):
-broad classical office with roof blocks, arched clerestory row, sparse panes, tall arched door
-(52-350); stepped Art Deco cupola tower with dome, ball, needle (356-496); gabled tower with arched
-dome (500-608); THE STATION centrepiece — twin domed drum towers with arcades, pedimented central
-facade with lunette, three arched entrances, wide hatched staircase (608-904); gabled Gothic church
-— rose window, corner spirelets, pointed door, side aisle (928-1144); broad slab with horizontal
-floor bands + tall three-door base (1158-1372); Art Deco tower with balustrade frieze topped by a
-standing statue with raised arm (1462-1618); low closing arcade (1628-1782).
+FRONT plane (each KNOCKS its silhouette out of the backs — sticker overlaps): broad classical
+office with parapet blocks, arched clerestory row, dense pane wall, ground arcade and double portal
+(40-405); domed monument with small crowning figure, pilaster bands and twin-height stepped shaft
+(418-576); baroque-crowned gable tower (586-688); THE ROMANESQUE CHURCH centrepiece — twin DOMED
+drum towers with two arcade tiers, pedimented facade with great lunette, three arched entrances,
+wide hatched staircase (680-1070); the GOTHIC church — two steep crocketed gables, needle
+spirelets with balls, canopied perpendicular TRACERY light, triple pointed portal, sloped aisle
+with paired lancets (1108-1368); the low annex with dash cornice and door (1604-1698).
 
-- **Windows** are sparse individual panes (small rects, ~11×16 px, inkSoft 1.2) on mostly blank
-  walls — NOT lattices covering every facade. Only ONE dense grid and ONE pinstripe building.
-- **Tone from hatching** — the station staircase is the only shaded area.
+### THE VULCAN — the strip's hero, measured from the picture
+
+A solid ~110 px figure standing on a denticulated cornice atop a slim shaft tower: striding legs,
+drapery flap over the hips, broad brawny torso, head with beard hint, RIGHT ARM RAISED OVERHEAD
+holding a small tilted TABLET, left arm bent with a hammer at the hip. He is the tallest element at
+this end and reads first. Never demote him to a stick figure on a block, and never bury him — the
+picture gives him clear sky.
+
+- **Windows** are sparse individual panes (small rects ~7×9 px, inkFaint 1.0) on mostly blank
+  walls — NOT lattices covering every facade. Only ONE dense grid, ONE horizontal-line slab, ONE
+  pair of banded towers; no texture repeats across neighbours.
+- **Tone from hatching** — the church staircase is the only shaded area.
 - **Wordmark** — "BIRMINGHAM" caps, Georgia/serif regular ~60 px, letter-spacing ~30 px, ink at
-  0.85 alpha, wipe-in.
+  0.9 alpha, wipe-in.
 
 ### Mistakes to avoid
 
+- Inventing domes where the picture has flat, stepped, line-banded or plain tops — the right
+  cluster is Banded / Vertical / Statuesque / Plain, four distinct textures.
+- A rose window on the Gothic church — the picture shows a pointed perpendicular tracery light.
 - Repeating a texture across buildings → each mass gets ONE signature; neighbours differ.
 - Buildings merely standing next to each other → fronts must knock out backs where they overlap.
-- Equal widths / even rhythm → widths swing 80 px to 300 px.
+- Equal widths / even rhythm → widths swing 60 px to 400 px; the picture's buildings overlap
+  heavily with clean margins between them.
 - Filled shapes → house rule: tone from hatch only (the staircase).
 - Rigid geometry → outlines go through `inkPath` wobble; panes stay crisp.
 - Caption competing with skyline → it sits alone below the ground rule.

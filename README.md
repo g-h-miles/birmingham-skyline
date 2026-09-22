@@ -1,11 +1,15 @@
 # Birmingham draws itself
 
-A blank page with a **Start** button. Press it and a dense shoulder-to-shoulder band of Birmingham
-landmarks hand-inks itself along the footer: a thin ground rule sweeps across, then a travelling
-pen draws nineteen overlapping buildings one stroke-pass at a time — cupola and turret-cluster
-domes, a colonnaded classical front, Gothic spires (one flying a flag), clock towers, a gabled
-terrace, the statue column with its raised-arm figure towering over the row, and the Colmore block
-with its two corner orbs — closing under a light-tracked **BIRMINGHAM**.
+A blank page with a **Start** button. Press it and a wall of Birmingham landmarks hand-inks itself
+along the footer: a thin ground rule sweeps across, tall silhouettes rise behind — the dense-grid
+slab, the orb tower with its pediment and corner balls, the canopied Gothic spire, the floor-lined
+giant, the vertical-banded towers, the lattice mast, the plain monolith — then detailed buildings
+draw in across the front, each knocking clean sticker margins out of the backs: a dense-grid office
+with arched clerestory and ground arcade, a domed monument with a figure on its drum, a
+baroque-crowned gable tower, the Romanesque twin-domed church with its hatched staircase, and a
+double-gabled Gothic church with crocketed spirelets and a canopied tracery window. Above them all
+at the right stands **the great Vulcan, tablet raised overhead**, and the strip closes under a
+light-tracked **BIRMINGHAM**.
 
 The footer canvas is a **transparent plate**: the engine's paper background and grain are switched
 off (`FILM.transparent`, `post: false`), so the ink sits directly on whatever background your page
